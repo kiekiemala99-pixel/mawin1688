@@ -1,0 +1,14 @@
+{
+  "name": "mawin1688",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "build": "node server.js",
+    "build:host": "node server.js",
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "better-auth": "latest",
+    "pg": "latest"
+  }
+}
