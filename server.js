@@ -1,9 +1,12 @@
-services:
-  - type: web
-    name: mawin1688
-    env: node
-    buildCommand: npm ci && npm run build:host
-    startCommand: npm start
-    envVars:
-      - key: NODE_VERSION
-        value: 22.23.2
+{
+  "name": "mawin1688",
+  "version": "1.0.0",
+  "description": "",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2"
+  }
+}
