@@ -92,7 +92,12 @@ export const loadHomeDraws = createServerFn({ method: "GET" }).handler(async () 
   let gov: DrawResult | null = null;
   if (dateKey) {
     try {
-      gov = await persistGovLive(dateKey);
+      gov = await Promise.race([
+        persistGovLive(dateKey),
+        new Promise<null>((resolve) => {
+          setTimeout(() => resolve(null), 1200);
+        }),
+      ]);
     } catch (err) {
       logServerError("loadHomeDraws.gov", err);
     }

@@ -13,20 +13,33 @@ export const Route = createFileRoute("/")({
     ...(s.loginError ? { loginError: String(s.loginError) } : {}),
     ...(s.loggedOut ? { loggedOut: String(s.loggedOut) } : {}),
   }),
+  pendingMs: 0,
+  pendingComponent: HomeFallback,
   loader: async () => {
     try {
-      return await loadHomeDraws();
+      return await Promise.race([
+        loadHomeDraws(),
+        new Promise<{ govDate: string; gov: null }>((resolve) => {
+          setTimeout(() => resolve({ govDate: "", gov: null }), 1500);
+        }),
+      ]);
     } catch {
       return { govDate: "", gov: null };
     }
   },
-  errorComponent: () => (
+  errorComponent: HomeFallback,
+  component: Home,
+});
+
+function HomeFallback() {
+  return (
     <main style={{ minHeight: "100dvh", background: "#050b18", color: "#faf6ea", padding: 20, fontFamily: "sans-serif" }}>
-      <h1 style={{ color: "#f0d789" }}>มาวิน1688</h1>
+      <h1 style={{ color: "#f0d789", fontSize: 28, margin: 0 }}>มาวิน1688</h1>
+      <p style={{ color: "#c9a44a", marginTop: 8 }}>เข้าสู่ระบบ</p>
       <form method="POST" action="/api/phone-login" style={{ marginTop: 16, display: "grid", gap: 10 }}>
-        <input name="phone" required placeholder="เบอร์โทรศัพท์" style={{ height: 48, borderRadius: 8, padding: "0 12px" }} />
-        <input name="password" type="password" required placeholder="รหัสผ่าน" style={{ height: 48, borderRadius: 8, padding: "0 12px" }} />
-        <button type="submit" style={{ height: 48, borderRadius: 8, background: "#c9a44a", color: "#3a2c0c", fontWeight: 700 }}>
+        <input name="phone" required placeholder="เบอร์โทรศัพท์" inputMode="tel" style={{ height: 48, borderRadius: 8, padding: "0 12px", background: "#102044", color: "#faf6ea", border: "1px solid #c9a44a" }} />
+        <input name="password" type="password" required placeholder="รหัสผ่าน" style={{ height: 48, borderRadius: 8, padding: "0 12px", background: "#102044", color: "#faf6ea", border: "1px solid #c9a44a" }} />
+        <button type="submit" style={{ height: 48, borderRadius: 8, background: "#c9a44a", color: "#3a2c0c", fontWeight: 700, border: 0 }}>
           เข้าสู่ระบบ
         </button>
       </form>
@@ -34,9 +47,8 @@ export const Route = createFileRoute("/")({
         <a href="/register" style={{ color: "#f0d789" }}>สมัครสมาชิก</a>
       </p>
     </main>
-  ),
-  component: Home,
-});
+  );
+}
 
 function Home() {
   const { loginError, loggedOut } = Route.useSearch();

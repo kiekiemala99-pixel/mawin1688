@@ -64,6 +64,7 @@ export const Route = createFileRoute("/app")({
     const auth = typeof s.auth === "string" ? s.auth : undefined;
     return auth ? { auth } : {};
   },
+  pendingMs: 300,
   pendingComponent: () => <GateScreen title="กำลังเข้าสู่ระบบ…" sub="รอสักครู่ ถ้าค้างนานให้กลับไปเข้าสู่ระบบใหม่" />,
   errorComponent: ({ error }) => (
     <GateScreen title="เข้าสู่ระบบไม่สำเร็จ" sub={error instanceof Error ? error.message : "ลองเข้าใหม่"} />
