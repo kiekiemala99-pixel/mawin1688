@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { AdminMembersPanel } from "@/components/admin-members-panel";
-import { loadStaffMembers } from "@/lib/wallet-server";
+import { getStaffSummary, loadStaffMembers } from "@/lib/wallet-server";
 
 export const Route = createFileRoute("/app/admin/members")({
   validateSearch: (s: Record<string, unknown>): { ok?: string; err?: string } => ({
@@ -9,16 +9,17 @@ export const Route = createFileRoute("/app/admin/members")({
   }),
   loader: async () => {
     try {
-      return await loadStaffMembers();
+      const [rows, summary] = await Promise.all([loadStaffMembers(), getStaffSummary()]);
+      return { rows, total: summary.memberCount };
     } catch {
-      return [];
+      return { rows: [], total: 0 };
     }
   },
   component: AdminMembersPage,
 });
 
 function AdminMembersPage() {
-  const rows = Route.useLoaderData();
+  const { rows, total } = Route.useLoaderData();
   const { ok, err } = Route.useSearch();
-  return <AdminMembersPanel rows={rows} ok={ok} err={err} />;
+  return <AdminMembersPanel rows={rows} total={total} ok={ok} err={err} />;
 }

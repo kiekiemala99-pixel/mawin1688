@@ -5,15 +5,23 @@ import type { StaffMember } from "@/lib/wallet-server";
 
 export function AdminMembersPanel({
   rows = [],
+  total,
   ok,
   err,
 }: {
   rows?: StaffMember[];
+  total?: number;
   ok?: string;
   err?: string;
 }) {
+  const count = total ?? rows.length;
   return (
     <div className="space-y-2">
+      <div className="rounded-2xl bg-navy-card px-4 py-4 text-center">
+        <p className="text-xs text-cream/55">จำนวนสมาชิกที่สมัครทั้งหมด</p>
+        <p className="tabular mt-1 text-3xl font-semibold text-gold-bright">{count}</p>
+        <p className="text-xs text-cream/45">คน</p>
+      </div>
       <p className="text-xs text-cream/55">แก้ไขข้อมูล ลดยอด หรือเพิ่มเครดิตได้จากฟอร์มของแต่ละคน</p>
       {ok ? <p className="rounded-xl bg-emerald-950/70 px-3 py-2 text-center text-sm text-emerald-200">บันทึกแล้ว</p> : null}
       {err ? <p className="rounded-xl bg-red-950/70 px-3 py-2 text-center text-sm text-red-200">ทำรายการไม่สำเร็จ ตรวจเบอร์ บัญชี หรือยอดเงิน</p> : null}

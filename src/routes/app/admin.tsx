@@ -1,9 +1,19 @@
 import { Outlet, createFileRoute, useLocation } from "@tanstack/react-router";
 import { Disc3, Film, Gift, Landmark, Share2, SlidersHorizontal, Trophy, Users, Wallet } from "lucide-react";
 import { useSessionUser } from "@/lib/store";
+import { getStaffSummary } from "@/lib/wallet-server";
 import { cn } from "@/lib/utils";
 
-export const Route = createFileRoute("/app/admin")({ component: AdminLayout });
+export const Route = createFileRoute("/app/admin")({
+  loader: async () => {
+    try {
+      return await getStaffSummary();
+    } catch {
+      return { pendingDeposits: 0, pendingWithdraws: 0, memberCount: 0 };
+    }
+  },
+  component: AdminLayout,
+});
 
 const TABS = [
   { to: "/app/admin", label: "รอฝาก", icon: Landmark },
@@ -20,6 +30,7 @@ const TABS = [
 function AdminLayout() {
   const user = useSessionUser();
   const loc = useLocation();
+  const summary = Route.useLoaderData();
 
   if (!user?.isStaff) {
     return (
@@ -38,6 +49,21 @@ function AdminLayout() {
       <div>
         <h1 className="text-lg font-semibold text-gold-bright">แผงควบคุมแอดมิน</h1>
         <p className="text-xs text-cream/55">ฝาก-ถอน · โปรโมชัน · แนะนำเพื่อน · อัตราแพ้ชนะ · คูปอง · ผลหวย · สมาชิก</p>
+        <div className="mt-3 grid grid-cols-3 gap-2">
+          <div className="rounded-xl bg-navy-card px-3 py-3 text-center">
+            <div className="text-[11px] text-cream/55">สมัครทั้งหมด</div>
+            <div className="tabular text-xl font-semibold text-gold-bright">{summary.memberCount}</div>
+            <div className="text-[10px] text-cream/45">คน</div>
+          </div>
+          <div className="rounded-xl bg-navy-card px-3 py-3 text-center">
+            <div className="text-[11px] text-cream/55">รอฝาก</div>
+            <div className="tabular text-xl font-semibold text-gold-bright">{summary.pendingDeposits}</div>
+          </div>
+          <div className="rounded-xl bg-navy-card px-3 py-3 text-center">
+            <div className="text-[11px] text-cream/55">รอถอน</div>
+            <div className="tabular text-xl font-semibold text-gold-bright">{summary.pendingWithdraws}</div>
+          </div>
+        </div>
       </div>
       <nav className="grid grid-cols-2 gap-2 sm:grid-cols-4">
         {TABS.map((t) => {
