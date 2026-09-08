@@ -31,6 +31,9 @@ function ProfilePage() {
         <Link to="/app/promo" className="rounded-2xl bg-navy-card px-4 py-3 text-sm text-gold-bright">
           โปรโมชัน · กดรับโบนัส
         </Link>
+        <Link to="/app/referral" className="rounded-2xl bg-navy-card px-4 py-3 text-sm text-gold-bright">
+          แนะนำเพื่อน · ได้ค่าแนะนำเมื่อเพื่อนฝาก
+        </Link>
         <Link to="/app/rates" className="rounded-2xl bg-navy-card px-4 py-3 text-sm text-gold-bright">
           อัตราจ่ายหวยและบอล
         </Link>

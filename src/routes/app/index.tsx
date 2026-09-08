@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, createFileRoute } from "@tanstack/react-router";
-import { ArrowDownToLine, ArrowUpFromLine, Gift, Goal, Sparkles, Ticket } from "lucide-react";
+import { ArrowDownToLine, ArrowUpFromLine, Gift, Goal, Sparkles, Ticket, Users } from "lucide-react";
 import { useNow } from "@/hooks/use-now";
 import { MARKETS, getMarketState } from "@/lib/lottery";
 import { type MatchView } from "@/lib/football";
@@ -119,6 +119,14 @@ function AppHome() {
               <Gift className="size-6 text-gold-bright" />
               <h3 className="mt-2 font-semibold text-gold-bright">โปรโมชัน</h3>
               <p className="mt-0.5 text-xs text-cream/70">กดรับโบนัสตามโปรโมชันที่เปิดอยู่</p>
+            </Link>
+            <Link
+              to="/app/referral"
+              className="casino-card col-span-2 rounded-2xl p-4"
+            >
+              <Users className="size-6 text-gold-bright" />
+              <h3 className="mt-2 font-semibold text-gold-bright">แนะนำเพื่อน</h3>
+              <p className="mt-0.5 text-xs text-cream/70">แชร์ลิงก์ แล้วได้ค่าแนะนำเมื่อเพื่อนฝากเงิน</p>
             </Link>
             <Link
               to="/app/lottery"

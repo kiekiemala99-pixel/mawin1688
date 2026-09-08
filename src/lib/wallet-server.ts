@@ -12,6 +12,7 @@ import { liveMatch } from "@/lib/football-feed";
 import { logServerError, publicError } from "@/lib/server-log";
 import type { PostedDraw } from "@/lib/lottery-draws-server";
 import { remainingTurnover, turnoverSnapshot } from "@/lib/promo-server";
+import { payReferralCommission, resolveReferrerId } from "@/lib/referral-server";
 
 export type WalletView = {
   userId: string;
@@ -306,6 +307,7 @@ const createBody = z
     phone: z.string().trim(),
     bankName: z.string().trim().min(1),
     bankAccount: z.string().trim().min(1),
+    ref: z.string().trim().max(32).optional(),
   })
   .superRefine((data, ctx) => {
     const err = validatePayAccount(data.bankName, data.bankAccount);
@@ -344,10 +346,11 @@ export const createWallet = createServerFn({ method: "POST" })
     if ((clash[0]?.c ?? 0) > 0) throw new Error("ชื่อผู้ใช้หรือเบอร์โทรนี้ถูกใช้แล้ว");
 
     const isStaff = isHouseStaff(username, phone);
+    const referrerId = await resolveReferrerId(data.ref, username);
     await sql.query(
-      `insert into wallets (user_id, username, phone, bank_name, bank_account, balance, is_staff)
-       values ($1, $2, $3, $4, $5, 0, $6)`,
-      [context.userId, username, phone, data.bankName, normalizePayAccount(data.bankAccount), isStaff],
+      `insert into wallets (user_id, username, phone, bank_name, bank_account, balance, is_staff, ref_code, referrer_id)
+       values ($1, $2, $3, $4, $5, 0, $6, $2, $7)`,
+      [context.userId, username, phone, data.bankName, normalizePayAccount(data.bankAccount), isStaff, referrerId],
     );
     const wallet = await readWallet(context.userId);
     if (!wallet) throw new Error("สร้างกระเป๋าไม่สำเร็จ");
@@ -484,6 +487,7 @@ export const reviewCashTxn = createServerFn({ method: "POST" })
         [data.id, ownerId, context.userId],
       );
       if (rows.length === 0) throw new Error("อนุมัติไม่สำเร็จ");
+      await payReferralCommission(ownerId, data.id, money(row.amount));
     } else if (data.action === "approve" && row.type === "withdraw") {
       await withTransaction(async (tx) => {
         const locked = await tx.query<{ balance: string | number }>(

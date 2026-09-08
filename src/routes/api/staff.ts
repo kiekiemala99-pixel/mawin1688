@@ -6,6 +6,7 @@ import { normalizePayAccount, validatePayAccount } from "@/lib/banks";
 import { isThaiPhone, phoneToEmail } from "@/lib/phone";
 import { getMarketState, type MarketId } from "@/lib/lottery";
 import { settleLotteryBetsForRound } from "@/lib/wallet-server";
+import { payReferralCommission } from "@/lib/referral-server";
 
 export const Route = createFileRoute("/api/staff")({
   server: {
@@ -59,6 +60,7 @@ async function handleStaff(request: Request) {
     if (action === "member_update") return updateMember(form);
     if (action === "member_adjust") return adjustMember(form, userId);
     if (action === "draw") return publishDraw(form, userId);
+    if (action === "referral") return saveReferral(form);
     return back("/app/admin", "err=fail");
   } catch (err) {
     console.error("[staff]", err);
@@ -71,6 +73,7 @@ function pathOf(action: string) {
   if (action.startsWith("member")) return "/app/admin/members";
   if (action === "rtp") return "/app/admin/rtp";
   if (action === "draw") return "/app/admin/draws";
+  if (action === "referral") return "/app/admin/referral";
   if (action === "cash") return "/app/admin";
   return "/app/admin";
 }
@@ -209,6 +212,7 @@ async function reviewCash(form: FormData, staffId: string) {
       [id, ownerId, staffId],
     );
     if (rows.length === 0) return back(path, "err=fail");
+    await payReferralCommission(ownerId, id, money(row.amount));
   } else if (decide === "approve" && row.type === "withdraw") {
     await withTransaction(async (tx) => {
       const locked = await tx.query<{ balance: string | number }>(`select balance from wallets where user_id = $1 for update`, [ownerId]);
@@ -319,4 +323,22 @@ async function publishDraw(form: FormData, staffId: string) {
   );
   await settleLotteryBetsForRound(roundKey, { top3, bottom2, first6 });
   return back("/app/admin/draws", "ok=1");
+}
+
+async function saveReferral(form: FormData) {
+  const percent = Math.min(100, Math.max(0, money(form.get("percent"))));
+  const minDeposit = Math.max(1, money(form.get("minDeposit") || 1));
+  const enabled = String(form.get("enabled") || "") === "1";
+  const sql = await getSql();
+  await sql.query(
+    `insert into referral_settings (id, percent, enabled, min_deposit, updated_at)
+     values ('main', $1::numeric, $2, $3::numeric, now())
+     on conflict (id) do update
+       set percent = excluded.percent,
+           enabled = excluded.enabled,
+           min_deposit = excluded.min_deposit,
+           updated_at = now()`,
+    [percent, enabled, minDeposit],
+  );
+  return back("/app/admin/referral", "ok=1");
 }

@@ -1,5 +1,5 @@
 import { Outlet, createFileRoute, useLocation } from "@tanstack/react-router";
-import { Disc3, Gift, Landmark, SlidersHorizontal, Trophy, Users, Wallet } from "lucide-react";
+import { Disc3, Gift, Landmark, Share2, SlidersHorizontal, Trophy, Users, Wallet } from "lucide-react";
 import { useSessionUser } from "@/lib/store";
 import { cn } from "@/lib/utils";
 
@@ -9,6 +9,7 @@ const TABS = [
   { to: "/app/admin", label: "รอฝาก", icon: Landmark },
   { to: "/app/admin/withdraw", label: "รอถอน", icon: Wallet },
   { to: "/app/admin/promos", label: "โปรโมชัน", icon: Gift },
+  { to: "/app/admin/referral", label: "แนะนำเพื่อน", icon: Share2 },
   { to: "/app/admin/rtp", label: "อัตราแพ้ชนะ", icon: SlidersHorizontal },
   { to: "/app/admin/wheel", label: "คูปอง", icon: Disc3 },
   { to: "/app/admin/draws", label: "ผลหวย", icon: Trophy },
@@ -35,7 +36,7 @@ function AdminLayout() {
     <div className="mx-auto max-w-lg space-y-3">
       <div>
         <h1 className="text-lg font-semibold text-gold-bright">แผงควบคุมแอดมิน</h1>
-        <p className="text-xs text-cream/55">ฝาก-ถอน · โปรโมชัน · อัตราแพ้ชนะ · คูปอง · ผลหวย · สมาชิก</p>
+        <p className="text-xs text-cream/55">ฝาก-ถอน · โปรโมชัน · แนะนำเพื่อน · อัตราแพ้ชนะ · คูปอง · ผลหวย · สมาชิก</p>
       </div>
       <nav className="grid grid-cols-2 gap-2 sm:grid-cols-4">
         {TABS.map((t) => {

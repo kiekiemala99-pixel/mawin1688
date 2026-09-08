@@ -37,7 +37,17 @@ function WalletPage() {
               <div className="flex items-center justify-between gap-2">
                 <div>
                   <div className="font-medium text-cream">
-                    {t.type === "deposit" ? "ฝาก" : t.type === "withdraw" ? "ถอน" : t.type === "bet" ? "แทง" : t.type === "adjust" ? "ปรับยอด" : "จ่ายรางวัล"}
+                    {t.type === "deposit"
+                      ? "ฝาก"
+                      : t.type === "withdraw"
+                        ? "ถอน"
+                        : t.type === "bet"
+                          ? "แทง"
+                          : t.type === "adjust"
+                            ? "ปรับยอด"
+                            : t.note.startsWith("ค่าแนะนำ")
+                              ? "ค่าแนะนำเพื่อน"
+                              : "จ่ายรางวัล"}
                     {t.status === "pending" ? " · รอแอดมินตรวจ" : t.status === "rejected" ? " · ปฏิเสธ" : ""}
                   </div>
                   <div className="text-xs text-cream/50">

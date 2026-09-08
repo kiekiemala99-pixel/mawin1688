@@ -11,10 +11,16 @@ import { PAY_CHANNELS, channelByName, validatePayAccount } from "@/lib/banks";
 import { useStore } from "@/lib/store";
 import { checkHandleAvailable } from "@/lib/wallet-server";
 
-export const Route = createFileRoute("/register")({ component: RegisterPage });
+export const Route = createFileRoute("/register")({
+  validateSearch: (s: Record<string, unknown>): { ref?: string } => ({
+    ...(typeof s.ref === "string" && s.ref.trim() ? { ref: s.ref.trim() } : {}),
+  }),
+  component: RegisterPage,
+});
 
 function RegisterPage() {
   const registerProfile = useStore((s) => s.registerProfile);
+  const { ref } = Route.useSearch();
   const [busy, setBusy] = useState(false);
   const [form, setForm] = useState({
     username: "",
@@ -88,6 +94,7 @@ function RegisterPage() {
         phone: form.phone,
         bankName: form.bankName,
         bankAccount: form.bankAccount,
+        ref,
       });
       if (err) {
         toast.error(err);
@@ -106,7 +113,7 @@ function RegisterPage() {
     <GuestShell>
       <GoldCard>
         <h1 className="text-center text-lg font-semibold text-ink">สมัครสมาชิก</h1>
-        <p className="mt-1 text-center text-xs text-muted">กรอกข้อมูลให้ครบเพื่อเปิดบัญชี</p>
+        <p className="mt-1 text-center text-xs text-muted">{ref ? `สมัครจากลิงก์แนะนำของ ${ref}` : "กรอกข้อมูลให้ครบเพื่อเปิดบัญชี"}</p>
         <form className="mt-4 space-y-2.5" onSubmit={onSubmit}>
           <IconField icon={<User className="size-5" />} placeholder="ชื่อผู้ใช้" autoComplete="username" value={form.username} onChange={(e) => set("username", e.target.value)} />
           <IconField icon={<Phone className="size-5" />} placeholder="เบอร์โทร" inputMode="tel" autoComplete="tel" value={form.phone} onChange={(e) => set("phone", e.target.value)} />
