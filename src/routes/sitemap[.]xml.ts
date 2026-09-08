@@ -10,9 +10,9 @@ export const Route = createFileRoute("/sitemap.xml")({
           "/",
           "/articles",
           "/register",
-          "/login",
           "/rates",
           "/rules",
+          "/movies",
           ...ARTICLES.map((a) => `/articles/${a.slug}`),
         ];
         const body = `<?xml version="1.0" encoding="UTF-8"?>
