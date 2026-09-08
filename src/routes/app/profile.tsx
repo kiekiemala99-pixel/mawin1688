@@ -34,6 +34,9 @@ function ProfilePage() {
         <Link to="/app/referral" className="rounded-2xl bg-navy-card px-4 py-3 text-sm text-gold-bright">
           แนะนำเพื่อน · ได้ค่าแนะนำเมื่อเพื่อนฝาก
         </Link>
+        <a href="/movies" className="rounded-2xl bg-navy-card px-4 py-3 text-sm text-gold-bright">
+          ดูหนัง
+        </a>
         <Link to="/app/rates" className="rounded-2xl bg-navy-card px-4 py-3 text-sm text-gold-bright">
           อัตราจ่ายหวยและบอล
         </Link>

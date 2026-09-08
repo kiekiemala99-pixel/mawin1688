@@ -7,6 +7,7 @@ import { isThaiPhone, phoneToEmail } from "@/lib/phone";
 import { getMarketState, type MarketId } from "@/lib/lottery";
 import { settleLotteryBetsForRound } from "@/lib/wallet-server";
 import { payReferralCommission } from "@/lib/referral-server";
+import { safeHttpUrl } from "@/lib/movies-server";
 
 export const Route = createFileRoute("/api/staff")({
   server: {
@@ -61,6 +62,10 @@ async function handleStaff(request: Request) {
     if (action === "member_adjust") return adjustMember(form, userId);
     if (action === "draw") return publishDraw(form, userId);
     if (action === "referral") return saveReferral(form);
+    if (action === "movie_save") return saveMovie(form);
+    if (action === "movie_delete") return deleteMovie(form);
+    if (action === "banner_save") return saveBanner(form);
+    if (action === "banner_delete") return deleteBanner(form);
     return back("/app/admin", "err=fail");
   } catch (err) {
     console.error("[staff]", err);
@@ -74,6 +79,7 @@ function pathOf(action: string) {
   if (action === "rtp") return "/app/admin/rtp";
   if (action === "draw") return "/app/admin/draws";
   if (action === "referral") return "/app/admin/referral";
+  if (action.startsWith("movie") || action.startsWith("banner")) return "/app/admin/movies";
   if (action === "cash") return "/app/admin";
   return "/app/admin";
 }
@@ -341,4 +347,84 @@ async function saveReferral(form: FormData) {
     [percent, enabled, minDeposit],
   );
   return back("/app/admin/referral", "ok=1");
+}
+
+async function saveMovie(form: FormData) {
+  const id = String(form.get("id") || "").trim() || `mv_${crypto.randomUUID()}`;
+  const title = String(form.get("title") || "").trim();
+  if (title.length < 1) return back("/app/admin/movies", "err=title");
+  const poster = safeHttpUrl(String(form.get("posterUrl") || ""));
+  const video = safeHttpUrl(String(form.get("videoUrl") || ""));
+  const sql = await getSql();
+  await sql.query(
+    `insert into movies (id, title, subtitle, category, year, poster_url, video_url, description, published, featured, sort_order)
+     values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)
+     on conflict (id) do update set
+       title = excluded.title,
+       subtitle = excluded.subtitle,
+       category = excluded.category,
+       year = excluded.year,
+       poster_url = excluded.poster_url,
+       video_url = excluded.video_url,
+       description = excluded.description,
+       published = excluded.published,
+       featured = excluded.featured,
+       sort_order = excluded.sort_order`,
+    [
+      id,
+      title.slice(0, 80),
+      String(form.get("subtitle") || "").trim().slice(0, 120),
+      String(form.get("category") || "ทั่วไป").trim().slice(0, 32) || "ทั่วไป",
+      String(form.get("year") || "").trim().slice(0, 8),
+      poster,
+      video,
+      String(form.get("description") || "").trim().slice(0, 2000),
+      String(form.get("published") || "") === "1",
+      String(form.get("featured") || "") === "1",
+      Number(form.get("sortOrder") || 0) || 0,
+    ],
+  );
+  return back("/app/admin/movies", "ok=1");
+}
+
+async function deleteMovie(form: FormData) {
+  const id = String(form.get("id") || "").trim();
+  if (!id) return back("/app/admin/movies", "err=missing");
+  const sql = await getSql();
+  await sql.query(`delete from movies where id = $1`, [id]);
+  return back("/app/admin/movies", "ok=1");
+}
+
+async function saveBanner(form: FormData) {
+  const image = safeHttpUrl(String(form.get("imageUrl") || ""));
+  if (!image) return back("/app/admin/movies", "err=banner");
+  const id = String(form.get("id") || "").trim() || `bn_${crypto.randomUUID()}`;
+  const sql = await getSql();
+  await sql.query(
+    `insert into movie_banners (id, title, image_url, link_url, active, sort_order)
+     values ($1,$2,$3,$4,$5,$6)
+     on conflict (id) do update set
+       title = excluded.title,
+       image_url = excluded.image_url,
+       link_url = excluded.link_url,
+       active = excluded.active,
+       sort_order = excluded.sort_order`,
+    [
+      id,
+      String(form.get("title") || "").trim().slice(0, 80),
+      image,
+      safeHttpUrl(String(form.get("linkUrl") || "")),
+      String(form.get("active") || "") === "1",
+      Number(form.get("sortOrder") || 0) || 0,
+    ],
+  );
+  return back("/app/admin/movies", "ok=1");
+}
+
+async function deleteBanner(form: FormData) {
+  const id = String(form.get("id") || "").trim();
+  if (!id) return back("/app/admin/movies", "err=missing");
+  const sql = await getSql();
+  await sql.query(`delete from movie_banners where id = $1`, [id]);
+  return back("/app/admin/movies", "ok=1");
 }

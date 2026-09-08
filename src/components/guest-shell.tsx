@@ -20,6 +20,7 @@ export function GuestShell({ children }: { children: ReactNode }) {
             แทงบอล
           </Link>
           <Link to="/rates">อัตราจ่าย</Link>
+          <a href="/movies">ดูหนัง</a>
           <Link to="/rules">กติกา</Link>
         </nav>
         <p>มาวิน1688 เว็บตรง หวยออนไลน์ แทงบอล ค่าน้ำ หวยยี่กี หวยรัฐบาล</p>

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, createFileRoute } from "@tanstack/react-router";
-import { ArrowDownToLine, ArrowUpFromLine, Gift, Goal, Sparkles, Ticket, Users } from "lucide-react";
+import { ArrowDownToLine, ArrowUpFromLine, Film, Gift, Goal, Sparkles, Ticket, Users } from "lucide-react";
 import { useNow } from "@/hooks/use-now";
 import { MARKETS, getMarketState } from "@/lib/lottery";
 import { type MatchView } from "@/lib/football";
@@ -128,6 +128,14 @@ function AppHome() {
               <h3 className="mt-2 font-semibold text-gold-bright">แนะนำเพื่อน</h3>
               <p className="mt-0.5 text-xs text-cream/70">แชร์ลิงก์ แล้วได้ค่าแนะนำเมื่อเพื่อนฝากเงิน</p>
             </Link>
+            <a
+              href="/movies"
+              className="casino-card col-span-2 rounded-2xl p-4"
+            >
+              <Film className="size-6 text-gold-bright" />
+              <h3 className="mt-2 font-semibold text-gold-bright">ดูหนัง</h3>
+              <p className="mt-0.5 text-xs text-cream/70">คลังหนัง · แบนเนอร์โปรโมต อัปเดตโดยแอดมิน</p>
+            </a>
             <Link
               to="/app/lottery"
               className="casino-card col-span-2 rounded-2xl p-4"
