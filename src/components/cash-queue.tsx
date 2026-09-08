@@ -1,5 +1,5 @@
 import { AuthHidden } from "@/components/auth-hidden";
-import { formatBaht } from "@/lib/format";
+import { formatBaht, formatWhen } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import type { StaffCashItem } from "@/lib/wallet-server";
 
@@ -33,6 +33,7 @@ export function CashQueue({
                   {item.phone}
                   {item.method ? ` · ${item.method}` : ""}
                 </div>
+                <div className="mt-1 text-xs font-medium text-gold-bright">แจ้งเมื่อ {formatWhen(item.createdAt)}</div>
                 {item.type === "withdraw" ? (
                   <div className="mt-2 rounded-lg bg-navy-mid px-2.5 py-2 text-xs text-cream/85">
                     <div>โอนเข้า {item.bankName || "ธนาคารที่ลงทะเบียน"}</div>

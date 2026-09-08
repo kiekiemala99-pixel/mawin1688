@@ -104,6 +104,9 @@ function AppHome() {
       {pendingCash.length > 0 && (
         <Link to="/app/wallet" className="block w-full rounded-xl bg-navy-card px-3 py-3 text-left text-sm text-gold-bright shadow-[0_0_0_1px_rgba(201,164,74,0.25)]">
           มี {pendingCash.length} รายการฝาก/ถอนรอแอดมินตรวจ
+          <span className="mt-1 block text-[11px] font-normal text-cream/55">
+            ล่าสุด {pendingCash[0] ? new Date(pendingCash[0].createdAt).toLocaleString("th-TH", { timeZone: "Asia/Bangkok", day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit", hour12: false }) : ""}
+          </span>
         </Link>
       )}
 

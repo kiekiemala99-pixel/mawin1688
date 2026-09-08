@@ -1,3 +1,18 @@
+export function formatWhen(ms?: number | null) {
+  if (!ms) return "";
+  const d = new Date(ms);
+  if (Number.isNaN(d.getTime())) return "";
+  return d.toLocaleString("th-TH", {
+    timeZone: "Asia/Bangkok",
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  });
+}
+
 export function formatBaht(n: number, digits = 2) {
   return n.toLocaleString("th-TH", {
     minimumFractionDigits: digits,

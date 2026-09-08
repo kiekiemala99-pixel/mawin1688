@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { WithdrawForm } from "@/components/withdraw-form";
 import { useStore } from "@/lib/store";
-import { formatBaht } from "@/lib/format";
+import { formatBaht, formatWhen } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/app/withdraw")({
@@ -25,8 +25,11 @@ function WithdrawPage() {
       <div className="space-y-1.5">
         {txns.map((t) => (
           <div key={t.id} className="flex items-center justify-between rounded-xl bg-navy-card px-3 py-2.5 text-sm">
-            <div className="font-medium text-cream">
-              ถอน{t.status === "pending" ? " · รอตรวจ" : t.status === "rejected" ? " · ปฏิเสธ · คืนยอดแล้ว" : " · อนุมัติแล้ว"}
+            <div>
+              <div className="font-medium text-cream">
+                ถอน{t.status === "pending" ? " · รอตรวจ" : t.status === "rejected" ? " · ปฏิเสธ · คืนยอดแล้ว" : " · อนุมัติแล้ว"}
+              </div>
+              <div className="text-xs text-cream/50">แจ้งเมื่อ {formatWhen(t.createdAt)}</div>
             </div>
             <div className={cn("tabular font-semibold", t.status === "approved" ? "text-lose" : "text-cream/55")}>
               {formatBaht(t.amount, 0)}

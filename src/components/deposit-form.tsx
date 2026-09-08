@@ -39,6 +39,9 @@ export function DepositForm({
       {result?.ok ? (
         <p className="mt-3 rounded-lg bg-green-900/40 px-3 py-2 text-center text-sm font-semibold text-green-100">
           ส่งสลิปแล้ว · รอแอดมินอนุมัติก่อนเข้าเครดิต
+          <span className="mt-1 block text-[11px] font-normal text-green-100/80">
+            เวลาแจ้ง {new Date().toLocaleString("th-TH", { timeZone: "Asia/Bangkok", day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit", hour12: false })}
+          </span>
         </p>
       ) : null}
       {errText ? (

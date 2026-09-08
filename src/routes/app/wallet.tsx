@@ -3,7 +3,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { DepositForm } from "@/components/deposit-form";
 import { WithdrawForm } from "@/components/withdraw-form";
 import { useSessionUser, useStore } from "@/lib/store";
-import { formatBaht } from "@/lib/format";
+import { formatBaht, formatWhen } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/app/wallet")({ component: WalletPage });
@@ -41,7 +41,8 @@ function WalletPage() {
                     {t.status === "pending" ? " · รอแอดมินตรวจ" : t.status === "rejected" ? " · ปฏิเสธ" : ""}
                   </div>
                   <div className="text-xs text-cream/50">
-                    {t.note}
+                    {formatWhen(t.createdAt)}
+                    {t.note ? ` · ${t.note}` : ""}
                     {t.hasSlip ? " · มีสลิป" : ""}
                   </div>
                 </div>

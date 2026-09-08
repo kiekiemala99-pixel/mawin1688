@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { DepositForm } from "@/components/deposit-form";
 import { useStore } from "@/lib/store";
-import { formatBaht } from "@/lib/format";
+import { formatBaht, formatWhen } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/app/deposit")({
@@ -38,7 +38,10 @@ function DepositPage() {
                 {t.method || "ฝาก"}
                 {t.status === "pending" ? " · รอตรวจสลิป" : t.status === "rejected" ? " · ปฏิเสธ" : " · เข้าเครดิตแล้ว"}
               </div>
-              <div className="text-xs text-cream/50">{t.hasSlip ? "มีสลิป" : t.note}</div>
+              <div className="text-xs text-cream/50">
+                แจ้งเมื่อ {formatWhen(t.createdAt)}
+                {t.hasSlip ? " · มีสลิป" : t.note ? ` · ${t.note}` : ""}
+              </div>
             </div>
             <div className={cn("tabular font-semibold", t.status === "approved" ? "text-win" : "text-cream/55")}>
               {formatBaht(t.amount, 0)}
