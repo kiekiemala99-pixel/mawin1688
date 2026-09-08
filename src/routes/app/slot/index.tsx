@@ -9,10 +9,10 @@ function SlotLobby() {
   return (
     <div className="space-y-3">
       <div>
-        <h1 className="text-lg font-semibold text-gold-bright">สล็อต</h1>
-        <p className="text-xs text-cream/55">5 เกมโปสเตอร์ · กดเข้าหมุนได้เลย</p>
+        <h1 className="text-lg font-semibold text-gold-bright">สล็อตจอใหญ่</h1>
+        <p className="text-xs text-cream/55">5 เกมภาพใหญ่ วงล้อเต็มจอ กดเข้าหมุนได้เลย</p>
       </div>
-      <div className="grid grid-cols-2 gap-2 sm:grid-cols-5">
+      <div className="grid grid-cols-2 gap-3">
         {SLOT_GAMES.map((g) => (
           <a key={g.id} href={`/app/slot/${g.id}`} className="overflow-hidden rounded-2xl bg-navy-card shadow-[0_0_0_1px_rgba(201,164,74,0.28)]">
             <img src={g.cover} alt="" className="slot-poster" loading="lazy" decoding="async" />

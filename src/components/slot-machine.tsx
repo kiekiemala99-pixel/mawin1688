@@ -87,8 +87,8 @@ export function SlotMachine({ game }: { game: SlotGame }) {
     const el = windowRef.current;
     if (!el) return;
     const measure = () => {
-      const h = el.querySelector(".slot-cell")?.clientHeight;
-      if (h) setCell(h);
+      const h = el.clientHeight;
+      if (h > 60) setCell(Math.max(72, Math.floor(h / 3)));
     };
     measure();
     const ro = new ResizeObserver(measure);
@@ -150,7 +150,13 @@ export function SlotMachine({ game }: { game: SlotGame }) {
 
   const won = !spinning && last?.status === "won";
   const big = Boolean(won && last && last.payout >= Math.max(100, stake * 8));
-  const cellSize = `clamp(4.2rem, 18vw, 5.8rem)`;
+  const cellSize = `${cell}px`;
+  const stakeIdx = Math.max(0, SLOT_STAKES.indexOf(stake as (typeof SLOT_STAKES)[number]));
+
+  function bumpStake(dir: -1 | 1) {
+    const next = SLOT_STAKES[stakeIdx + dir];
+    if (next) setStake(next);
+  }
 
   return (
     <GameStage
@@ -177,7 +183,7 @@ export function SlotMachine({ game }: { game: SlotGame }) {
             e.preventDefault();
             void spin();
           }}
-          className="mx-auto w-full max-w-md"
+          className="mx-auto w-full max-w-lg"
           style={{ ["--slot-cell" as string]: cellSize }}
         >
           <input type="hidden" name="kind" value="slot" />
@@ -195,22 +201,23 @@ export function SlotMachine({ game }: { game: SlotGame }) {
             )}
             {!spinning && last?.status === "lost" && <span className="text-cream/55">ไม่เข้าเส้นในรอบนี้</span>}
           </div>
-          <div className="mb-3 flex flex-wrap justify-center gap-1.5">
-            {SLOT_STAKES.map((n) => (
-              <button
-                key={n}
-                type="button"
-                disabled={spinning}
-                onClick={() => setStake(n)}
-                className={cn("chip px-3 text-sm", stake === n ? "btn-gold" : "bg-navy-card text-cream/80")}
-              >
-                {n}
+          <div className="pg-stake">
+            <div className="pg-stake-box">
+              <button type="button" disabled={spinning || stakeIdx <= 0} onClick={() => bumpStake(-1)} className="pg-stake-btn">
+                −
               </button>
-            ))}
+              <div className="text-center">
+                <div className="text-[10px] tracking-widest text-cream/50">เดิมพัน</div>
+                <div className="tabular text-lg font-bold text-gold-bright">฿ {stake}</div>
+              </div>
+              <button type="button" disabled={spinning || stakeIdx >= SLOT_STAKES.length - 1} onClick={() => bumpStake(1)} className="pg-stake-btn">
+                +
+              </button>
+            </div>
+            <button type="submit" disabled={spinning} className={cn("spin-3d", spinning && "is-down spin-glow")}>
+              {spinning ? "..." : "SPIN"}
+            </button>
           </div>
-          <button type="submit" disabled={spinning} className={cn("spin-3d", spinning && "is-down spin-glow")}>
-            {spinning ? "SPIN…" : `SPIN  ฿${stake}`}
-          </button>
           <details className="mt-3 rounded-2xl bg-navy-deep/80 px-4 py-2 text-sm">
             <summary className="cursor-pointer text-center font-semibold text-gold-bright">อัตราจ่าย</summary>
             <Paytable pack={game.pack} />

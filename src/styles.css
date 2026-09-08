@@ -249,8 +249,20 @@
     width: 100%;
     height: 100%;
     object-fit: cover;
-    opacity: 0.28;
+    object-position: center top;
+    opacity: 0.55;
     pointer-events: none;
+    filter: saturate(1.15) contrast(1.05);
+  }
+  .game-stage::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    pointer-events: none;
+    background:
+      radial-gradient(120% 80% at 50% 35%, transparent 20%, rgb(0 0 0 / 0.55) 100%),
+      linear-gradient(180deg, rgb(0 0 0 / 0.35), transparent 18%, transparent 58%, rgb(0 0 0 / 0.88));
   }
   .slot-hud,
   .game-hud {
@@ -280,8 +292,8 @@
     display: flex;
     flex: 1;
     min-height: 0;
-    align-items: center;
-    padding: 0.35rem 0.7rem;
+    align-items: stretch;
+    padding: 0.15rem 0.45rem;
   }
   .game-board {
     position: relative;
@@ -313,18 +325,61 @@
   }
   .slot-frame.slot-frame-xl {
     width: 100%;
-    max-width: 28rem;
+    max-width: 42rem;
     margin: 0 auto;
-    padding: 0.7rem;
+    padding: 0.55rem 0.45rem 0.7rem;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
   }
   .slot-window {
     display: grid;
     grid-template-columns: repeat(5, minmax(0, 1fr));
-    gap: 0.28rem;
-    height: calc(var(--slot-cell, 5rem) * 3);
+    gap: 0.18rem;
+    flex: 1;
+    min-height: 0;
+    height: auto;
     overflow: hidden;
-    border-radius: 0.85rem;
-    background: #050b18;
+    border-radius: 0.7rem;
+    background: #05060c;
+    box-shadow: inset 0 0 0 2px rgb(0 0 0 / 0.55);
+  }
+  .slot-cell {
+    display: grid;
+    height: var(--slot-cell, 6.4rem);
+    place-items: center;
+    overflow: hidden;
+    border-radius: 0.35rem;
+    background:
+      radial-gradient(circle at 50% 30%, rgb(255 255 255 / 0.08), transparent 55%),
+      #0a1020;
+  }
+  .slot-sym {
+    height: 100%;
+    width: 100%;
+    object-fit: cover;
+    border-radius: 0.28rem;
+  }
+  .spin-3d {
+    display: grid;
+    place-items: center;
+    width: 5.6rem;
+    height: 5.6rem;
+    flex-shrink: 0;
+    border-radius: 999px;
+    font-size: 0.95rem;
+    font-weight: 900;
+    letter-spacing: 0.12em;
+    color: #3a2c0c;
+    background: radial-gradient(circle at 35% 30%, #fff6c4 0%, #f0d789 28%, #c9a44a 68%, #8a6a1f 100%);
+    box-shadow:
+      inset 0 3px 0 #fffef0,
+      inset 0 -8px 14px rgb(92 55 12 / 0.4),
+      0 0 0 6px #5c3a0c,
+      0 0 0 8px #f0d789,
+      0 14px 28px rgb(0 0 0 / 0.55);
+    transform: translateY(-3px);
+    transition: transform 120ms ease-out, box-shadow 120ms ease-out, filter 120ms ease-out;
   }
   .slot-reel {
     position: relative;
@@ -338,41 +393,10 @@
   .slot-strip.is-spinning {
     animation: slot-blur 0.09s linear infinite;
   }
-  .slot-cell {
-    display: grid;
-    height: var(--slot-cell, 5rem);
-    place-items: center;
-    overflow: hidden;
-    border-radius: 0.55rem;
-    background: #050b18;
-  }
   .slot-cell.is-win {
-    box-shadow: 0 0 0 2px var(--color-gold-bright), 0 0 16px rgb(240 215 137 / 0.65);
-    filter: brightness(1.25);
-  }
-  .slot-sym {
-    height: calc(var(--slot-cell, 5rem) - 0.2rem);
-    width: 100%;
-    object-fit: cover;
-  }
-  .spin-3d {
-    display: grid;
-    place-items: center;
-    width: 100%;
-    height: 4.7rem;
-    border-radius: 999px;
-    font-size: 1.35rem;
-    font-weight: 800;
-    letter-spacing: 0.18em;
-    color: #3a2c0c;
-    background: linear-gradient(180deg, #fff6c4 0%, #f0d789 36%, #c9a44a 72%, #8a6a1f 100%);
-    box-shadow:
-      inset 0 2px 0 #fffef0,
-      inset 0 -5px 10px rgb(92 55 12 / 0.38),
-      0 9px 0 #5c3a0c,
-      0 16px 28px rgb(0 0 0 / 0.5);
-    transform: translateY(-4px);
-    transition: transform 120ms ease-out, box-shadow 120ms ease-out, filter 120ms ease-out;
+    box-shadow: 0 0 0 2px var(--color-gold-bright), 0 0 18px rgb(240 215 137 / 0.8);
+    filter: brightness(1.28);
+    z-index: 2;
   }
   .spin-3d:hover { filter: brightness(1.06); }
   .spin-3d:active,
@@ -405,6 +429,33 @@
     aspect-ratio: 3 / 4;
     width: 100%;
     object-fit: cover;
+    min-height: 11rem;
+  }
+  .pg-stake {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+  }
+  .pg-stake-box {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 3.2rem;
+    border-radius: 999px;
+    background: rgb(8 14 28 / 0.88);
+    box-shadow: 0 0 0 1px rgb(201 164 74 / 0.45);
+    padding: 0 0.35rem;
+  }
+  .pg-stake-btn {
+    width: 2.4rem;
+    height: 2.4rem;
+    border-radius: 999px;
+    background: linear-gradient(180deg, #f0d789, #c9a44a);
+    color: #3a2c0c;
+    font-size: 1.4rem;
+    font-weight: 800;
   }
   .slot-gem-bar {
     display: flex;
