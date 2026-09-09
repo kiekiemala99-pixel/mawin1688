@@ -1,7 +1,7 @@
 import { AuthHidden } from "@/components/auth-hidden";
 import { formatBaht, formatWhen } from "@/lib/format";
 import { cn } from "@/lib/utils";
-import type { StaffCashItem } from "@/lib/wallet-server";
+import type { StaffCashItem, StaffMemberCashProfile } from "@/lib/wallet-server";
 
 export function CashQueue({
   type,
@@ -41,6 +41,7 @@ export function CashQueue({
                   </div>
                 ) : null}
                 {item.note ? <div className="mt-1 text-xs text-cream/70">{item.note}</div> : null}
+                {item.type === "withdraw" && item.profile ? <WithdrawProfile profile={item.profile} /> : null}
               </div>
               <div className={cn("tabular text-lg font-semibold", item.type === "deposit" ? "text-win" : "text-lose")}>
                 {item.type === "deposit" ? "+" : "-"}
@@ -72,6 +73,59 @@ export function CashQueue({
             </div>
           </article>
         ))
+      )}
+    </div>
+  );
+}
+
+function WithdrawProfile({ profile }: { profile: StaffMemberCashProfile }) {
+  const bonus = profile.received.reduce((s, r) => s + r.amount, 0);
+  return (
+    <div className="mt-2 space-y-1.5 rounded-xl bg-navy-deep/70 px-2.5 py-2 text-xs text-cream/80">
+      <div className="font-semibold text-gold-bright">สรุปบัญชีก่อนอนุมัติถอน</div>
+      <div className="grid grid-cols-2 gap-x-3 gap-y-1 tabular">
+        <span>เครดิตปัจจุบัน</span>
+        <span className="text-right text-cream">฿ {formatBaht(profile.balance, 0)}</span>
+        <span>ฝากมาแล้ว</span>
+        <span className="text-right text-win">
+          ฿ {formatBaht(profile.depositTotal, 0)}
+          {profile.depositCount ? ` · ${profile.depositCount} ครั้ง` : ""}
+        </span>
+        <span>ถอนไปแล้ว</span>
+        <span className="text-right">฿ {formatBaht(profile.withdrawTotal, 0)}</span>
+        <span>รับโบนัส/โปร</span>
+        <span className="text-right text-gold-bright">฿ {formatBaht(bonus, 0)}</span>
+      </div>
+      {profile.lastDeposits.length > 0 ? (
+        <div>
+          <div className="text-cream/55">ฝากล่าสุด</div>
+          {profile.lastDeposits.map((d, i) => (
+            <div key={`${d.at}-${i}`} className="flex justify-between tabular">
+              <span>{formatWhen(d.at)}</span>
+              <span>฿ {formatBaht(d.amount, 0)}</span>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <div className="text-cream/55">ยังไม่มีรายการฝากที่อนุมัติ</div>
+      )}
+      {profile.received.length > 0 ? (
+        <div>
+          <div className="text-cream/55">เคยรับอะไรบ้าง</div>
+          {profile.received.slice(0, 8).map((r, i) => (
+            <div key={`${r.label}-${i}`} className="flex justify-between gap-2">
+              <span className="truncate">{r.label}</span>
+              <span className="tabular shrink-0">฿ {formatBaht(r.amount, 0)}</span>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <div className="text-cream/55">ยังไม่เคยรับโปรหรือคูปอง</div>
+      )}
+      {profile.turnoverRemain > 0 ? (
+        <div className="font-semibold text-lose">ยังทำยอดไม่ครบ เหลือ ฿ {formatBaht(profile.turnoverRemain, 0)}</div>
+      ) : (
+        <div className="text-win">ทำยอดครบแล้ว</div>
       )}
     </div>
   );

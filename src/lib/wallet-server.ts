@@ -52,6 +52,17 @@ export type StaffCashItem = {
   method: string;
   hasSlip: boolean;
   createdAt: number;
+  profile?: StaffMemberCashProfile;
+};
+
+export type StaffMemberCashProfile = {
+  balance: number;
+  depositTotal: number;
+  depositCount: number;
+  withdrawTotal: number;
+  lastDeposits: { amount: number; at: number }[];
+  received: { label: string; amount: number }[];
+  turnoverRemain: number;
 };
 
 export type BetPayload = {
@@ -545,6 +556,7 @@ export async function loadStaffCashQueue(): Promise<StaffCashItem[]> {
     phone: string;
     bank_name: string;
     bank_account: string;
+    balance: string | number;
     type: "deposit" | "withdraw";
     amount: string | number;
     note: string;
@@ -552,7 +564,7 @@ export async function loadStaffCashQueue(): Promise<StaffCashItem[]> {
     has_slip: boolean;
     created_at: string;
   }>`
-    select t.id, t.user_id, w.username, w.phone, w.bank_name, w.bank_account,
+    select t.id, t.user_id, w.username, w.phone, w.bank_name, w.bank_account, w.balance,
            t.type, t.amount, t.note, t.method,
            (t.slip_data <> '') as has_slip, t.created_at
     from transactions t
@@ -561,6 +573,8 @@ export async function loadStaffCashQueue(): Promise<StaffCashItem[]> {
     order by t.created_at asc
     limit 40
   `;
+  const ids = [...new Set(rows.map((r) => r.user_id))];
+  const profiles = await loadMemberCashProfiles(ids);
   return rows.map(
     (t): StaffCashItem => ({
       id: t.id,
@@ -576,8 +590,135 @@ export async function loadStaffCashQueue(): Promise<StaffCashItem[]> {
       method: t.method ?? "",
       hasSlip: Boolean(t.has_slip),
       createdAt: new Date(t.created_at).getTime(),
+      profile: profiles.get(t.user_id) ?? {
+        balance: money(t.balance),
+        depositTotal: 0,
+        depositCount: 0,
+        withdrawTotal: 0,
+        lastDeposits: [],
+        received: [],
+        turnoverRemain: 0,
+      },
     }),
   );
+}
+
+async function loadMemberCashProfiles(ids: string[]) {
+  const map = new Map<string, StaffMemberCashProfile>();
+  if (ids.length === 0) return map;
+  const sql = await getSql();
+  const wallets = await sql<{ user_id: string; balance: string | number }>`
+    select user_id, balance from wallets where user_id = any(${ids}::text[])
+  `;
+  for (const w of wallets) {
+    map.set(w.user_id, {
+      balance: money(w.balance),
+      depositTotal: 0,
+      depositCount: 0,
+      withdrawTotal: 0,
+      lastDeposits: [],
+      received: [],
+      turnoverRemain: 0,
+    });
+  }
+  const sums = await sql<{
+    user_id: string;
+    deposit_total: string | number;
+    deposit_count: number;
+    withdraw_total: string | number;
+  }>`
+    select user_id,
+      coalesce(sum(amount) filter (where type = 'deposit' and status = 'approved'), 0) as deposit_total,
+      count(*) filter (where type = 'deposit' and status = 'approved')::int as deposit_count,
+      coalesce(sum(amount) filter (where type = 'withdraw' and status = 'approved'), 0) as withdraw_total
+    from transactions
+    where user_id = any(${ids}::text[])
+    group by user_id
+  `;
+  for (const s of sums) {
+    const p = map.get(s.user_id);
+    if (!p) continue;
+    p.depositTotal = money(s.deposit_total);
+    p.depositCount = s.deposit_count;
+    p.withdrawTotal = money(s.withdraw_total);
+  }
+  const lastDep = await sql<{ user_id: string; amount: string | number; created_at: string }>`
+    select user_id, amount, created_at
+    from transactions
+    where user_id = any(${ids}::text[]) and type = 'deposit' and status = 'approved'
+    order by created_at desc
+    limit 120
+  `;
+  for (const d of lastDep) {
+    const p = map.get(d.user_id);
+    if (!p || p.lastDeposits.length >= 3) continue;
+    p.lastDeposits.push({ amount: money(d.amount), at: new Date(d.created_at).getTime() });
+  }
+  try {
+    const promos = await sql<{ user_id: string; title: string; amount: string | number }>`
+      select c.user_id, coalesce(nullif(p.title, ''), c.promo_code) as title, c.amount
+      from promo_claims c
+      left join promotions p on p.id = c.promo_code
+      where c.status = 'approved' and c.user_id = any(${ids}::text[])
+      order by c.created_at desc
+    `;
+    for (const r of promos) {
+      map.get(r.user_id)?.received.push({ label: `โปร ${r.title}`, amount: money(r.amount) });
+    }
+  } catch {
+    /* older db */
+  }
+  try {
+    const coupons = await sql<{ user_id: string; code: string; amount: string | number }>`
+      select cl.user_id, co.code, co.amount
+      from coupon_claims cl
+      join coupons co on co.id = cl.coupon_id
+      where cl.user_id = any(${ids}::text[])
+    `;
+    for (const r of coupons) {
+      map.get(r.user_id)?.received.push({ label: `คูปอง ${r.code}`, amount: money(r.amount) });
+    }
+  } catch {
+    /* older db */
+  }
+  try {
+    const adjusts = await sql<{ user_id: string; amount: string | number; note: string }>`
+      select user_id, amount, note
+      from transactions
+      where user_id = any(${ids}::text[]) and type = 'adjust' and status = 'approved'
+      order by created_at desc
+    `;
+    for (const r of adjusts) {
+      map.get(r.user_id)?.received.push({ label: r.note || "ปรับยอด", amount: money(r.amount) });
+    }
+  } catch {
+    /* ignore */
+  }
+  try {
+    const turns = await sql<{ user_id: string; need: string | number; done: string | number }>`
+      with need as (
+        select user_id, coalesce(sum(turnover_need), 0) as need,
+               min(coalesce(reviewed_at, created_at)) as since
+        from promo_claims
+        where status = 'approved' and turnover_need > 0 and user_id = any(${ids}::text[])
+        group by user_id
+      )
+      select n.user_id, n.need,
+        coalesce((
+          select sum(t.amount) from transactions t
+          where t.user_id = n.user_id and t.type = 'bet' and t.status = 'approved' and t.created_at >= n.since
+        ), 0) as done
+      from need n
+    `;
+    for (const t of turns) {
+      const p = map.get(t.user_id);
+      if (!p) continue;
+      p.turnoverRemain = Math.max(0, money(t.need) - money(t.done));
+    }
+  } catch {
+    /* ignore */
+  }
+  return map;
 }
 
 export const listStaffQueue = createServerFn({ method: "POST" })
