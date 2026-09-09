@@ -118,31 +118,38 @@ async function savePromo(form: FormData) {
   const playNeed = Math.max(0, Number(form.get("playNeed") || 0));
   const withdrawMax = Math.max(0, Number(form.get("withdrawMax") || 0));
   const bonusAmount = Math.max(0, Number(form.get("bonusAmount") || 0));
+  const bonusPercent = Math.min(1000, Math.max(0, Number(form.get("bonusPercent") || 0)));
+  const maxBonus = Math.max(0, Number(form.get("maxBonus") || 0));
   const minDeposit = Math.max(0, Number(form.get("minDeposit") || 0));
+  const bonusType = String(form.get("bonusType") || "fixed") === "percent" ? "percent" : "fixed";
   const sql = await getSql();
   await sql.query(
     `insert into promotions (
        id, title, subtitle, kind, bonus_type, bonus_percent, bonus_amount,
        min_deposit, turnover_x, play_need, withdraw_max, max_bonus, rules, image_url, enabled, updated_at
      ) values (
-       $1,$2,$3,$4,'fixed',0,$5::numeric,$6::numeric,0,$7::numeric,$8::numeric,0,$9,$10,$11, now()
+       $1,$2,$3,$4,$5,$6::numeric,$7::numeric,$8::numeric,0,$9::numeric,$10::numeric,$11::numeric,$12,$13,$14, now()
      )
      on conflict (id) do update set
        title = excluded.title, subtitle = excluded.subtitle, kind = excluded.kind,
+       bonus_type = excluded.bonus_type, bonus_percent = excluded.bonus_percent,
        bonus_amount = excluded.bonus_amount, min_deposit = excluded.min_deposit,
-       play_need = excluded.play_need, withdraw_max = excluded.withdraw_max,
+       play_need = excluded.play_need, withdraw_max = excluded.withdraw_max, max_bonus = excluded.max_bonus,
        rules = excluded.rules,
-       image_url = case when $12::boolean then '' when excluded.image_url <> '' then excluded.image_url else promotions.image_url end,
+       image_url = case when $15::boolean then '' when excluded.image_url <> '' then excluded.image_url else promotions.image_url end,
        enabled = excluded.enabled, updated_at = now()`,
     [
       id,
       title,
       String(form.get("subtitle") || ""),
       String(form.get("kind") || "deposit"),
+      bonusType,
+      bonusPercent,
       bonusAmount,
       minDeposit,
       playNeed,
       withdrawMax,
+      maxBonus,
       String(form.get("rules") || ""),
       imageUrl,
       String(form.get("enabled") || "") === "1",

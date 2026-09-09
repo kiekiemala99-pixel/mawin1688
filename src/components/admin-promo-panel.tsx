@@ -48,14 +48,26 @@ export function AdminPromoPanel({
                 </option>
               ))}
             </select>
+            <select name="bonusType" className="h-10 w-full rounded-lg bg-navy-deep px-3 text-sm text-cream">
+              <option value="fixed">โบนัสเป็นบาท</option>
+              <option value="percent">โบนัสเป็น %</option>
+            </select>
             <div className="grid grid-cols-2 gap-2">
               <label className="block text-[11px] text-cream/55">
-                โบนัสที่ได้ (บาท)
+                โบนัส (บาท) ถ้าเลือกเป็นบาท
                 <input name="bonusAmount" type="number" min={0} step={1} defaultValue={50} className="mt-1 h-10 w-full rounded-lg bg-navy-deep px-3 text-sm text-cream outline-none" />
+              </label>
+              <label className="block text-[11px] text-cream/55">
+                โบนัส (%) ถ้าเลือกเป็น %
+                <input name="bonusPercent" type="number" min={0} max={1000} step={1} defaultValue={100} className="mt-1 h-10 w-full rounded-lg bg-navy-deep px-3 text-sm text-cream outline-none" />
               </label>
               <label className="block text-[11px] text-cream/55">
                 ฝากขั้นต่ำ (บาท)
                 <input name="minDeposit" type="number" min={0} step={1} defaultValue={0} className="mt-1 h-10 w-full rounded-lg bg-navy-deep px-3 text-sm text-cream outline-none" />
+              </label>
+              <label className="block text-[11px] text-cream/55">
+                โบนัสสูงสุด (บาท) 0 = ไม่จำกัด
+                <input name="maxBonus" type="number" min={0} step={1} defaultValue={0} className="mt-1 h-10 w-full rounded-lg bg-navy-deep px-3 text-sm text-cream outline-none" />
               </label>
               <label className="block text-[11px] text-cream/55">
                 ทำยอด (บาท)
@@ -66,7 +78,9 @@ export function AdminPromoPanel({
                 <input name="withdrawMax" type="number" min={0} step={1} defaultValue={0} className="mt-1 h-10 w-full rounded-lg bg-navy-deep px-3 text-sm text-cream outline-none" />
               </label>
             </div>
-            <p className="text-[11px] text-cream/45">ทำยอด 0 = ไม่ล็อกเทิร์น · ถอนได้สูงสุด 0 = ไม่จำกัด (ขั้นต่ำถอนยัง 100 บาท)</p>
+            <p className="text-[11px] text-cream/45">
+              ตัวอย่าง % · ฝากขั้นต่ำ 200 โบนัส 100% = ได้โบนัสเท่ายอดฝาก · ทำยอด 0 = ไม่ล็อก · ถอน 0 = ไม่จำกัด
+            </p>
             <textarea name="rules" rows={2} placeholder="ข้อความเงื่อนไขเพิ่ม เช่น ห้ามแทงเลขตอง" className="w-full rounded-lg bg-navy-deep p-3 text-sm text-cream outline-none" />
             <label className="flex items-center gap-2 text-sm text-cream">
               <input type="checkbox" name="enabled" value="1" defaultChecked />
@@ -83,7 +97,8 @@ export function AdminPromoPanel({
               <div className="font-semibold text-cream">{p.title}</div>
               <div className="text-xs text-cream/55">รหัส {p.id}</div>
               <p className="mt-1 text-xs text-cream/70">
-                โบนัส ฿ {formatBaht(p.bonusAmount, 0)}
+                {p.bonusType === "percent" ? `โบนัส ${p.bonusPercent}% ของยอดฝาก` : `โบนัส ฿ ${formatBaht(p.bonusAmount, 0)}`}
+                {p.maxBonus > 0 ? ` · สูงสุด ฿ ${formatBaht(p.maxBonus, 0)}` : ""}
                 {p.minDeposit > 0 ? ` · ฝากขั้นต่ำ ฿ ${formatBaht(p.minDeposit, 0)}` : ""}
                 {p.playNeed > 0 ? ` · ทำยอด ฿ ${formatBaht(p.playNeed, 0)}` : ""}
                 {p.withdrawMax > 0 ? ` · ถอนสูงสุด ฿ ${formatBaht(p.withdrawMax, 0)}` : " · ถอนไม่จำกัด"}
@@ -106,7 +121,10 @@ export function AdminPromoPanel({
                     <input type="hidden" name="title" value={p.title} />
                     <input type="hidden" name="subtitle" value={p.subtitle} />
                     <input type="hidden" name="kind" value={p.kind} />
+                    <input type="hidden" name="bonusType" value={p.bonusType} />
                     <input type="hidden" name="bonusAmount" value={p.bonusAmount} />
+                    <input type="hidden" name="bonusPercent" value={p.bonusPercent} />
+                    <input type="hidden" name="maxBonus" value={p.maxBonus} />
                     <input type="hidden" name="minDeposit" value={p.minDeposit} />
                     <input type="hidden" name="playNeed" value={p.playNeed} />
                     <input type="hidden" name="withdrawMax" value={p.withdrawMax} />

@@ -64,7 +64,12 @@ function PromoPage() {
             {p.subtitle ? ` · ${p.subtitle}` : ""}
           </div>
           <h2 className="mt-2 text-xl font-bold text-gold-bright">{p.title}</h2>
-          <p className="tabular mt-1 text-sm text-cream/80">โบนัส ฿ {formatBaht(p.bonusAmount, 0)}</p>
+          <p className="tabular mt-1 text-sm text-cream/80">
+            {p.bonusType === "percent"
+              ? `โบนัส ${p.bonusPercent}% ของยอดฝาก${p.estimatedBonus > 0 ? ` · ประมาณ ฿ ${formatBaht(p.estimatedBonus, 0)}` : ""}`
+              : `โบนัส ฿ ${formatBaht(p.bonusAmount, 0)}`}
+            {p.maxBonus > 0 ? ` · สูงสุด ฿ ${formatBaht(p.maxBonus, 0)}` : ""}
+          </p>
           <p className="mt-2 text-xs text-cream/55">
             {p.minDeposit > 0 ? `ฝากขั้นต่ำ ฿ ${formatBaht(p.minDeposit, 0)}` : "กดรับได้โดยไม่ต้องฝากก่อน"}
             {p.playNeed > 0 ? ` · ทำยอด ฿ ${formatBaht(p.playNeed, 0)}` : " · ไม่ล็อกทำยอด"}
