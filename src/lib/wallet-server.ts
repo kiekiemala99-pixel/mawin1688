@@ -57,6 +57,7 @@ export type StaffCashItem = {
 
 export type StaffMemberCashProfile = {
   balance: number;
+  joinedAt: number;
   depositTotal: number;
   depositCount: number;
   withdrawTotal: number;
@@ -592,6 +593,7 @@ export async function loadStaffCashQueue(): Promise<StaffCashItem[]> {
       createdAt: new Date(t.created_at).getTime(),
       profile: profiles.get(t.user_id) ?? {
         balance: money(t.balance),
+        joinedAt: 0,
         depositTotal: 0,
         depositCount: 0,
         withdrawTotal: 0,
@@ -607,12 +609,13 @@ async function loadMemberCashProfiles(ids: string[]) {
   const map = new Map<string, StaffMemberCashProfile>();
   if (ids.length === 0) return map;
   const sql = await getSql();
-  const wallets = await sql<{ user_id: string; balance: string | number }>`
-    select user_id, balance from wallets where user_id = any(${ids}::text[])
+  const wallets = await sql<{ user_id: string; balance: string | number; created_at: string }>`
+    select user_id, balance, created_at from wallets where user_id = any(${ids}::text[])
   `;
   for (const w of wallets) {
     map.set(w.user_id, {
       balance: money(w.balance),
+      joinedAt: new Date(w.created_at).getTime(),
       depositTotal: 0,
       depositCount: 0,
       withdrawTotal: 0,
@@ -771,6 +774,7 @@ export type StaffMember = {
   isStaff: boolean;
   bankName: string;
   bankAccount: string;
+  joinedAt: number;
 };
 
 export async function loadStaffMembers(): Promise<StaffMember[]> {
@@ -783,8 +787,9 @@ export async function loadStaffMembers(): Promise<StaffMember[]> {
     is_staff: boolean;
     bank_name: string;
     bank_account: string;
+    created_at: string;
   }>`
-    select user_id, username, phone, balance, is_staff, bank_name, bank_account
+    select user_id, username, phone, balance, is_staff, bank_name, bank_account, created_at
     from wallets
     order by created_at desc
     limit 80
@@ -798,6 +803,7 @@ export async function loadStaffMembers(): Promise<StaffMember[]> {
       isStaff: Boolean(r.is_staff),
       bankName: r.bank_name,
       bankAccount: r.bank_account,
+      joinedAt: new Date(r.created_at).getTime(),
     }),
   );
 }
@@ -817,6 +823,7 @@ function toStaffMember(r: {
   is_staff: boolean;
   bank_name: string;
   bank_account: string;
+  created_at: string;
 }): StaffMember {
   return {
     userId: r.user_id,
@@ -826,6 +833,7 @@ function toStaffMember(r: {
     isStaff: Boolean(r.is_staff),
     bankName: r.bank_name,
     bankAccount: r.bank_account,
+    joinedAt: new Date(r.created_at).getTime(),
   };
 }
 
@@ -843,8 +851,9 @@ export const getMember = createServerFn({ method: "POST" })
       is_staff: boolean;
       bank_name: string;
       bank_account: string;
+      created_at: string;
     }>`
-      select user_id, username, phone, balance, is_staff, bank_name, bank_account
+      select user_id, username, phone, balance, is_staff, bank_name, bank_account, created_at
       from wallets where user_id = ${data.userId} limit 1
     `;
     if (!rows[0]) throw new Error("ไม่พบสมาชิก");
@@ -1029,8 +1038,9 @@ export const updateMember = createServerFn({ method: "POST" })
       is_staff: boolean;
       bank_name: string;
       bank_account: string;
+      created_at: string;
     }>`
-      select user_id, username, phone, balance, is_staff, bank_name, bank_account
+      select user_id, username, phone, balance, is_staff, bank_name, bank_account, created_at
       from wallets where user_id = ${data.userId} limit 1
     `;
     return toStaffMember(row[0]);
@@ -1087,8 +1097,9 @@ export const adjustMemberBalance = createServerFn({ method: "POST" })
       is_staff: boolean;
       bank_name: string;
       bank_account: string;
+      created_at: string;
     }>`
-      select user_id, username, phone, balance, is_staff, bank_name, bank_account
+      select user_id, username, phone, balance, is_staff, bank_name, bank_account, created_at
       from wallets where user_id = ${data.userId} limit 1
     `;
     return toStaffMember(row[0]);

@@ -83,6 +83,7 @@ function WithdrawProfile({ profile }: { profile: StaffMemberCashProfile }) {
   return (
     <div className="mt-2 space-y-1.5 rounded-xl bg-navy-deep/70 px-2.5 py-2 text-xs text-cream/80">
       <div className="font-semibold text-gold-bright">สรุปบัญชีก่อนอนุมัติถอน</div>
+      {profile.joinedAt ? <div>สมัครเมื่อ {formatWhen(profile.joinedAt)}</div> : null}
       <div className="grid grid-cols-2 gap-x-3 gap-y-1 tabular">
         <span>เครดิตปัจจุบัน</span>
         <span className="text-right text-cream">฿ {formatBaht(profile.balance, 0)}</span>

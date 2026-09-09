@@ -1,6 +1,6 @@
 import { AuthHidden } from "@/components/auth-hidden";
 import { PAY_CHANNELS } from "@/lib/banks";
-import { formatBaht } from "@/lib/format";
+import { formatBaht, formatWhen } from "@/lib/format";
 import type { StaffMember } from "@/lib/wallet-server";
 
 export function AdminMembersPanel({
@@ -35,6 +35,7 @@ export function AdminMembersPanel({
                 {user.isStaff ? " · แอดมิน" : ""}
               </div>
               <div className="text-xs text-cream/55">{user.phone}</div>
+              <div className="mt-1 text-xs font-medium text-gold-bright">สมัคร {formatWhen(user.joinedAt)}</div>
             </div>
             <div className="tabular font-semibold text-gold-bright">฿ {formatBaht(user.balance)}</div>
           </div>
