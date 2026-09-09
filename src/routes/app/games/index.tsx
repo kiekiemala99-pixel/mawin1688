@@ -10,8 +10,8 @@ function GameLobby() {
   return (
     <div className="space-y-4">
       <div>
-        <h1 className="text-lg font-semibold text-gold-bright">เกม 10 รายการ</h1>
-        <p className="text-xs text-cream/55">เลือกโปสเตอร์แล้วเล่นทันที · หวยยังเป็นหลักของเว็บ</p>
+        <h1 className="text-lg font-semibold text-gold-bright">เกมทั้งหมด</h1>
+        <p className="text-xs text-cream/55">สล็อตไวรัลจอใหญ่ + มินิเกม · หวยยังเป็นหลักของเว็บ</p>
       </div>
       <section>
         <h2 className="mb-2 text-sm font-semibold text-gold-bright">มินิเกม</h2>

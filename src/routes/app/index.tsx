@@ -196,7 +196,7 @@ function AppHome() {
 
           <section>
             <div className="mb-2 flex items-end justify-between">
-              <h2 className="text-sm font-semibold text-gold-bright">เกม 10 รายการ</h2>
+              <h2 className="text-sm font-semibold text-gold-bright">เกมฮิต</h2>
               <a href="/app/games" className="text-xs text-cream/60">
                 ดูทั้งหมด
               </a>

@@ -10,7 +10,7 @@ function SlotLobby() {
     <div className="space-y-3">
       <div>
         <h1 className="text-lg font-semibold text-gold-bright">สล็อตจอใหญ่</h1>
-        <p className="text-xs text-cream/55">5 เกมภาพใหญ่ วงล้อเต็มจอ กดเข้าหมุนได้เลย</p>
+        <p className="text-xs text-cream/55">เกมภาพไวรัลสีสด + ธีมคลาสสิก วงล้อเต็มจอ กดเข้าหมุนได้เลย</p>
       </div>
       <div className="grid grid-cols-2 gap-3">
         {SLOT_GAMES.map((g) => (
