@@ -1,7 +1,7 @@
 import { Link, createFileRoute, notFound } from "@tanstack/react-router";
 import { GuestShell } from "@/components/guest-shell";
 import { GoldCard } from "@/components/gold-card";
-import { ARTICLES, getArticle, relatedArticles } from "@/lib/articles";
+import { ARTICLES, articleTags, getArticle, relatedArticles } from "@/lib/articles";
 
 export const Route = createFileRoute("/articles/$slug")({
   loader: ({ params }) => {
@@ -52,6 +52,18 @@ function ArticlePage() {
           <p className="mt-2 text-xs text-cream/50">
             {article.date} · อ่าน {article.readMins} นาที · มาวิน1688
           </p>
+          <div className="mt-3 flex flex-wrap gap-1.5">
+            {articleTags(article).map((t) => (
+              <Link
+                key={t}
+                to="/articles"
+                search={{ tag: t }}
+                className="rounded-full bg-navy-mid px-2.5 py-0.5 text-[11px] text-gold-bright"
+              >
+                #{t}
+              </Link>
+            ))}
+          </div>
           <div className="mt-4 space-y-3 text-sm leading-7 text-cream/85">
             {article.body.map((p) => (
               <p key={p.slice(0, 24)}>{p}</p>

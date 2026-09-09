@@ -13,8 +13,11 @@ export function GuestShell({ children }: { children: ReactNode }) {
           <Link to="/articles/$slug" params={{ slug: "web-trong-huay-ball-mawin1688" }}>
             เว็บตรง
           </Link>
-          <Link to="/articles/$slug" params={{ slug: "huay-yeekee-beginner" }}>
-            หวยยี่กี
+          <Link to="/articles/$slug" params={{ slug: "lek-ded-nguad-nee-2026" }}>
+            เลขเด็ด
+          </Link>
+          <Link to="/articles/$slug" params={{ slug: "huay-lao-hanoi-today" }}>
+            หวยลาววันนี้
           </Link>
           <Link to="/articles/$slug" params={{ slug: "tang-ball-1x2-handicap" }}>
             แทงบอล
