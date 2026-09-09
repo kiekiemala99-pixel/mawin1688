@@ -50,28 +50,25 @@ function PromoPage() {
           <Gift className="size-5" />
           โปรโมชันมาวิน1688
         </h1>
-        <p className="text-xs text-cream/55">ทำยอดเครดิตตามเทิร์นจึงจะถอนได้ · นับยอดเงินที่นำไปเล่น ไม่สนได้หรือเสีย</p>
+        <p className="text-xs text-cream/55">กดรับโปรได้เลย · แอดมินตั้งทำยอดและยอดถอนได้เอง</p>
       </div>
       {rows.length === 0 && (
         <p className="rounded-2xl bg-navy-card px-4 py-8 text-center text-sm text-cream/60">ยังไม่มีโปรโมชันที่เปิดใช้งาน</p>
       )}
       {rows.map((p) => (
         <GoldCard key={p.id}>
+          {p.imageUrl ? <img src={p.imageUrl} alt="" className="-mx-1 mb-3 h-36 w-[calc(100%+0.5rem)] rounded-xl object-cover" /> : null}
           <div className="inline-flex items-center gap-1 rounded-full bg-gold-ink px-2 py-0.5 text-[10px] font-semibold text-gold-bright">
             <Sparkles className="size-3" />
             {kindLabel(p.kind)}
             {p.subtitle ? ` · ${p.subtitle}` : ""}
           </div>
           <h2 className="mt-2 text-xl font-bold text-gold-bright">{p.title}</h2>
-          <p className="tabular mt-1 text-sm text-cream/80">
-            {p.bonusType === "percent" ? `โบนัส ${p.bonusPercent}%` : `โบนัส ฿ ${formatBaht(p.bonusAmount)}`}
-            {p.estimatedBonus > 0 ? ` · ประมาณ ฿ ${formatBaht(p.estimatedBonus)}` : ""}
-          </p>
+          <p className="tabular mt-1 text-sm text-cream/80">โบนัส ฿ {formatBaht(p.bonusAmount, 0)}</p>
           <p className="mt-2 text-xs text-cream/55">
-            {p.minDeposit > 0 ? `ฝากขั้นต่ำ ฿ ${formatBaht(p.minDeposit, 0)}` : "ไม่กำหนดยอดฝากขั้นต่ำ"}
-            {p.turnoverX > 0
-              ? ` · เทิร์น ${p.turnoverX} เท่าของยอดเงิน${p.estimatedTurnover > 0 ? ` (ต้องทำ ฿ ${formatBaht(p.estimatedTurnover, 0)})` : ""}`
-              : ""}
+            {p.minDeposit > 0 ? `ฝากขั้นต่ำ ฿ ${formatBaht(p.minDeposit, 0)}` : "กดรับได้โดยไม่ต้องฝากก่อน"}
+            {p.playNeed > 0 ? ` · ทำยอด ฿ ${formatBaht(p.playNeed, 0)}` : " · ไม่ล็อกทำยอด"}
+            {p.withdrawMax > 0 ? ` · ถอนได้สูงสุดครั้งละ ฿ ${formatBaht(p.withdrawMax, 0)}` : " · ถอนไม่จำกัด"}
           </p>
           {p.rules ? <p className="mt-2 text-xs leading-5 text-cream/60">{p.rules}</p> : null}
           <ClaimButton promo={p} busy={busy === p.id} onClaim={() => void claim(p.id)} />

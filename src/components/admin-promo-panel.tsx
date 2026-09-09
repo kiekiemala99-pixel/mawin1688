@@ -37,8 +37,10 @@ export function AdminPromoPanel({
             <input type="hidden" name="action" value="promo_save" />
             <p className="text-sm font-semibold text-gold-bright">สร้าง / แก้ไขโปรโมชัน</p>
             <input name="id" placeholder="เว้นว่างถ้าสร้างใหม่ หรือใส่รหัสโปรเพื่อแก้" className="h-10 w-full rounded-lg bg-navy-deep px-3 text-sm text-cream outline-none" />
-            <input name="title" required placeholder="ชื่อโปร" className="h-10 w-full rounded-lg bg-navy-deep px-3 text-sm text-cream outline-none" />
-            <input name="subtitle" placeholder="คำโปรย" className="h-10 w-full rounded-lg bg-navy-deep px-3 text-sm text-cream outline-none" />
+            <input name="title" required placeholder="ชื่อโปร เช่น ฝาก 200 ฟรี 200" className="h-10 w-full rounded-lg bg-navy-deep px-3 text-sm text-cream outline-none" />
+            <input name="subtitle" placeholder="คำโปรยสั้น ๆ" className="h-10 w-full rounded-lg bg-navy-deep px-3 text-sm text-cream outline-none" />
+            <input name="imageUrl" placeholder="ลิงก์รูปโปร https://..." className="h-10 w-full rounded-lg bg-navy-deep px-3 text-sm text-cream outline-none" />
+            <p className="text-[11px] text-cream/45">วางลิงก์รูปจากเว็บรูปภาพ แล้วสมาชิกจะเห็นรูปนี้บนหน้าโปร</p>
             <select name="kind" className="h-10 w-full rounded-lg bg-navy-deep px-3 text-sm text-cream">
               {PROMO_KINDS.map((k) => (
                 <option key={k.id} value={k.id}>
@@ -46,18 +48,26 @@ export function AdminPromoPanel({
                 </option>
               ))}
             </select>
-            <select name="bonusType" className="h-10 w-full rounded-lg bg-navy-deep px-3 text-sm text-cream">
-              <option value="fixed">จำนวนเงินคงที่</option>
-              <option value="percent">เปอร์เซ็นต์</option>
-            </select>
             <div className="grid grid-cols-2 gap-2">
-              <input name="bonusAmount" type="number" min={0} step={1} defaultValue={50} placeholder="ยอดโบนัส" className="h-10 rounded-lg bg-navy-deep px-3 text-sm text-cream outline-none" />
-              <input name="bonusPercent" type="number" min={0} step={0.1} defaultValue={0} placeholder="% โบนัส" className="h-10 rounded-lg bg-navy-deep px-3 text-sm text-cream outline-none" />
-              <input name="minDeposit" type="number" min={0} step={1} defaultValue={0} placeholder="ฝากขั้นต่ำ" className="h-10 rounded-lg bg-navy-deep px-3 text-sm text-cream outline-none" />
-              <input name="turnoverX" type="number" min={0} step={0.1} defaultValue={1} placeholder="เทิร์นเท่า" className="h-10 rounded-lg bg-navy-deep px-3 text-sm text-cream outline-none" />
+              <label className="block text-[11px] text-cream/55">
+                โบนัสที่ได้ (บาท)
+                <input name="bonusAmount" type="number" min={0} step={1} defaultValue={50} className="mt-1 h-10 w-full rounded-lg bg-navy-deep px-3 text-sm text-cream outline-none" />
+              </label>
+              <label className="block text-[11px] text-cream/55">
+                ฝากขั้นต่ำ (บาท)
+                <input name="minDeposit" type="number" min={0} step={1} defaultValue={0} className="mt-1 h-10 w-full rounded-lg bg-navy-deep px-3 text-sm text-cream outline-none" />
+              </label>
+              <label className="block text-[11px] text-cream/55">
+                ทำยอด (บาท)
+                <input name="playNeed" type="number" min={0} step={1} defaultValue={0} className="mt-1 h-10 w-full rounded-lg bg-navy-deep px-3 text-sm text-cream outline-none" />
+              </label>
+              <label className="block text-[11px] text-cream/55">
+                ถอนได้สูงสุดต่อครั้ง (บาท)
+                <input name="withdrawMax" type="number" min={0} step={1} defaultValue={0} className="mt-1 h-10 w-full rounded-lg bg-navy-deep px-3 text-sm text-cream outline-none" />
+              </label>
             </div>
-            <input name="maxBonus" type="number" min={0} step={1} defaultValue={0} placeholder="โบนัสสูงสุด 0 = ไม่จำกัด" className="h-10 w-full rounded-lg bg-navy-deep px-3 text-sm text-cream outline-none" />
-            <textarea name="rules" rows={2} placeholder="เงื่อนไข" className="w-full rounded-lg bg-navy-deep p-3 text-sm text-cream outline-none" />
+            <p className="text-[11px] text-cream/45">ทำยอด 0 = ไม่ล็อกเทิร์น · ถอนได้สูงสุด 0 = ไม่จำกัด (ขั้นต่ำถอนยัง 100 บาท)</p>
+            <textarea name="rules" rows={2} placeholder="ข้อความเงื่อนไขเพิ่ม เช่น ห้ามแทงเลขตอง" className="w-full rounded-lg bg-navy-deep p-3 text-sm text-cream outline-none" />
             <label className="flex items-center gap-2 text-sm text-cream">
               <input type="checkbox" name="enabled" value="1" defaultChecked />
               เปิดใช้งานทันที
@@ -69,13 +79,16 @@ export function AdminPromoPanel({
 
           {catalog.map((p) => (
             <article key={p.id} className="rounded-2xl bg-navy-card px-3 py-3">
+              {p.imageUrl ? <img src={p.imageUrl} alt="" className="mb-2 h-28 w-full rounded-xl object-cover" /> : null}
               <div className="font-semibold text-cream">{p.title}</div>
               <div className="text-xs text-cream/55">รหัส {p.id}</div>
               <p className="mt-1 text-xs text-cream/70">
-                {p.bonusType === "percent" ? `โบนัส ${p.bonusPercent}%` : `โบนัส ฿ ${formatBaht(p.bonusAmount)}`}
-                {p.turnoverX > 0 ? ` · เทิร์น ${p.turnoverX} เท่า` : ""}
+                โบนัส ฿ {formatBaht(p.bonusAmount, 0)}
+                {p.minDeposit > 0 ? ` · ฝากขั้นต่ำ ฿ ${formatBaht(p.minDeposit, 0)}` : ""}
+                {p.playNeed > 0 ? ` · ทำยอด ฿ ${formatBaht(p.playNeed, 0)}` : ""}
+                {p.withdrawMax > 0 ? ` · ถอนสูงสุด ฿ ${formatBaht(p.withdrawMax, 0)}` : " · ถอนไม่จำกัด"}
               </p>
-              <div className="mt-2 grid grid-cols-2 gap-2">
+              <div className="mt-2 grid grid-cols-3 gap-2">
                 <form method="POST" action="/api/staff">
                   <AuthHidden />
                   <input type="hidden" name="action" value="promo_toggle" />
@@ -85,12 +98,34 @@ export function AdminPromoPanel({
                     {p.enabled ? "ปิดโปร" : "เปิดโปร"}
                   </button>
                 </form>
+                {p.imageUrl ? (
+                  <form method="POST" action="/api/staff">
+                    <AuthHidden />
+                    <input type="hidden" name="action" value="promo_save" />
+                    <input type="hidden" name="id" value={p.id} />
+                    <input type="hidden" name="title" value={p.title} />
+                    <input type="hidden" name="subtitle" value={p.subtitle} />
+                    <input type="hidden" name="kind" value={p.kind} />
+                    <input type="hidden" name="bonusAmount" value={p.bonusAmount} />
+                    <input type="hidden" name="minDeposit" value={p.minDeposit} />
+                    <input type="hidden" name="playNeed" value={p.playNeed} />
+                    <input type="hidden" name="withdrawMax" value={p.withdrawMax} />
+                    <input type="hidden" name="rules" value={p.rules} />
+                    <input type="hidden" name="enabled" value={p.enabled ? "1" : "0"} />
+                    <input type="hidden" name="clearImage" value="1" />
+                    <button type="submit" className="h-9 w-full rounded-lg bg-navy-mid text-xs text-cream/80">
+                      ลบรูป
+                    </button>
+                  </form>
+                ) : (
+                  <span />
+                )}
                 <form method="POST" action="/api/staff">
                   <AuthHidden />
                   <input type="hidden" name="action" value="promo_delete" />
                   <input type="hidden" name="id" value={p.id} />
                   <button type="submit" className="h-9 w-full rounded-lg bg-lose/15 text-xs font-semibold text-lose">
-                    ลบ
+                    ลบโปร
                   </button>
                 </form>
               </div>

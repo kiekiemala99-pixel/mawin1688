@@ -11,7 +11,7 @@ import { payoutFor, settle1x2, settleHdp, settleOu, type MatchView } from "@/lib
 import { liveMatch } from "@/lib/football-feed";
 import { logServerError, publicError } from "@/lib/server-log";
 import type { PostedDraw } from "@/lib/lottery-draws-server";
-import { remainingTurnover, turnoverSnapshot } from "@/lib/promo-server";
+import { remainingTurnover, turnoverSnapshot, maxWithdrawOf } from "@/lib/promo-server";
 import { payReferralCommission, resolveReferrerId } from "@/lib/referral-server";
 
 export type WalletView = {
@@ -434,7 +434,9 @@ export const requestWithdraw = createServerFn({ method: "POST" })
     const wallet = await readWallet(context.userId);
     if (!wallet || wallet.balance < amount) throw new Error("เครดิตไม่พอ");
     const turn = await remainingTurnover(context.userId);
-    if (turn > 0) throw new Error(`ต้องทำเทิร์นอีก ฿ ${turn.toLocaleString("th-TH", { minimumFractionDigits: 2 })} ก่อนถอน`);
+    if (turn > 0) throw new Error(`ต้องทำยอดอีก ฿ ${turn.toLocaleString("th-TH", { minimumFractionDigits: 2 })} ก่อนถอน`);
+    const cap = await maxWithdrawOf(context.userId);
+    if (cap > 0 && amount > cap) throw new Error(`โปรนี้ถอนได้สูงสุดครั้งละ ฿ ${cap.toLocaleString("th-TH")}`);
     const sql = await getSql();
     const id = nid("tx");
     await sql.query(

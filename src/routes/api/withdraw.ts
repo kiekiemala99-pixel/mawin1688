@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { auth } from "@/lib/auth/server";
 import { withTransaction } from "@/lib/db";
 import { loadAccount } from "@/lib/wallet-server";
+import { maxWithdrawOf } from "@/lib/promo-server";
 
 export const Route = createFileRoute("/api/withdraw")({
   server: {
@@ -37,6 +38,8 @@ async function handleWithdraw(request: Request) {
     if (amount < 100) return back("err=min");
     const account = await loadAccount(userId);
     if (account.wallet.turnoverRemain > 0) return back("err=turn");
+    const cap = await maxWithdrawOf(userId);
+    if (cap > 0 && amount > cap) return back("err=cap");
     if (account.wallet.balance < amount) return back("err=credit");
     await withTransaction(async (tx) => {
       const locked = await tx.query<{ balance: string | number }>(

@@ -27,10 +27,13 @@ export type PromoRecord = {
   bonusAmount: number;
   minDeposit: number;
   turnoverX: number;
+  playNeed: number;
+  withdrawMax: number;
   maxBonus: number;
   startsAt: number | null;
   endsAt: number | null;
   rules: string;
+  imageUrl: string;
   enabled: boolean;
   updatedAt: number;
 };
@@ -89,10 +92,13 @@ function mapPromo(r: {
   bonus_amount: string | number;
   min_deposit: string | number;
   turnover_x: string | number;
+  play_need?: string | number;
+  withdraw_max?: string | number;
   max_bonus: string | number;
   starts_at: string | null;
   ends_at: string | null;
   rules: string;
+  image_url?: string;
   enabled: boolean;
   updated_at: string;
 }): PromoRecord {
@@ -106,10 +112,13 @@ function mapPromo(r: {
     bonusAmount: num(r.bonus_amount),
     minDeposit: num(r.min_deposit),
     turnoverX: num(r.turnover_x),
+    playNeed: num(r.play_need),
+    withdrawMax: num(r.withdraw_max),
     maxBonus: num(r.max_bonus),
     startsAt: r.starts_at ? new Date(r.starts_at).getTime() : null,
     endsAt: r.ends_at ? new Date(r.ends_at).getTime() : null,
     rules: r.rules ?? "",
+    imageUrl: r.image_url ?? "",
     enabled: Boolean(r.enabled),
     updatedAt: new Date(r.updated_at).getTime(),
   };
@@ -144,8 +153,26 @@ export function creditTurnoverBase(kind: PromoKind, deposit: number, bonus: numb
   return bonusR;
 }
 
-export function turnoverNeedOf(base: number, x: number) {
+export function turnoverNeedOf(base: number, x: number, playNeed = 0) {
+  if (playNeed > 0) return Math.round(playNeed * 100) / 100;
   return Math.round(Math.max(0, base) * Math.max(0, x) * 100) / 100;
+}
+
+export async function maxWithdrawOf(userId: string) {
+  try {
+    const sql = await getSql();
+    const rows = await sql<{ cap: string | number | null }>`
+      select min(p.withdraw_max) as cap
+      from promo_claims c
+      join promotions p on p.id = c.promo_code
+      where c.user_id = ${userId} and c.status = 'approved' and p.withdraw_max > 0
+    `;
+    const cap = money(rows[0]?.cap);
+    return cap > 0 ? cap : 0;
+  } catch (err) {
+    logServerError("maxWithdrawOf", err);
+    return 0;
+  }
 }
 
 export type TurnoverSnap = { need: number; done: number; remain: number };
@@ -197,10 +224,13 @@ const promoBody = z.object({
   bonusAmount: z.number().min(0).max(1_000_000),
   minDeposit: z.number().min(0).max(1_000_000),
   turnoverX: z.number().min(0).max(100),
+  playNeed: z.number().min(0).max(10_000_000).optional().default(0),
+  withdrawMax: z.number().min(0).max(10_000_000).optional().default(0),
   maxBonus: z.number().min(0).max(1_000_000),
   startsAt: z.number().nullable().optional(),
   endsAt: z.number().nullable().optional(),
   rules: z.string().trim().max(400).optional().default(""),
+  imageUrl: z.string().trim().max(500).optional().default(""),
   enabled: z.boolean(),
 });
 
@@ -208,7 +238,7 @@ export async function loadPromoCatalog(): Promise<PromoRecord[]> {
   const sql = await getSql();
   const rows = await sql<Parameters<typeof mapPromo>[0]>`
     select id, title, subtitle, kind, bonus_type, bonus_percent, bonus_amount, min_deposit,
-           turnover_x, max_bonus, starts_at, ends_at, rules, enabled, updated_at
+           turnover_x, play_need, withdraw_max, max_bonus, starts_at, ends_at, rules, image_url, enabled, updated_at
     from promotions
     order by updated_at desc
   `;
@@ -232,12 +262,12 @@ export const savePromo = createServerFn({ method: "POST" })
     await sql.query(
       `insert into promotions (
          id, title, subtitle, kind, bonus_type, bonus_percent, bonus_amount,
-         min_deposit, turnover_x, max_bonus, starts_at, ends_at, rules, enabled, updated_at
+         min_deposit, turnover_x, play_need, withdraw_max, max_bonus, starts_at, ends_at, rules, image_url, enabled, updated_at
        ) values (
-         $1,$2,$3,$4,$5,$6::numeric,$7::numeric,$8::numeric,$9::numeric,$10::numeric,
-         case when $11::bigint = 0 then null else to_timestamp($11::double precision / 1000) end,
-         case when $12::bigint = 0 then null else to_timestamp($12::double precision / 1000) end,
-         $13,$14, now()
+         $1,$2,$3,$4,$5,$6::numeric,$7::numeric,$8::numeric,$9::numeric,$10::numeric,$11::numeric,$12::numeric,
+         case when $13::bigint = 0 then null else to_timestamp($13::double precision / 1000) end,
+         case when $14::bigint = 0 then null else to_timestamp($14::double precision / 1000) end,
+         $15,$16,$17, now()
        )
        on conflict (id) do update set
          title = excluded.title,
@@ -248,10 +278,13 @@ export const savePromo = createServerFn({ method: "POST" })
          bonus_amount = excluded.bonus_amount,
          min_deposit = excluded.min_deposit,
          turnover_x = excluded.turnover_x,
+         play_need = excluded.play_need,
+         withdraw_max = excluded.withdraw_max,
          max_bonus = excluded.max_bonus,
          starts_at = excluded.starts_at,
          ends_at = excluded.ends_at,
          rules = excluded.rules,
+         image_url = excluded.image_url,
          enabled = excluded.enabled,
          updated_at = now()`,
       [
@@ -264,10 +297,13 @@ export const savePromo = createServerFn({ method: "POST" })
         data.bonusAmount,
         data.minDeposit,
         data.turnoverX,
+        data.playNeed ?? 0,
+        data.withdrawMax ?? 0,
         data.maxBonus,
         data.startsAt ?? 0,
         data.endsAt ?? 0,
         data.rules ?? "",
+        data.imageUrl ?? "",
         data.enabled,
       ],
     );
@@ -305,7 +341,7 @@ export const listMyPromos = createServerFn({ method: "POST" })
       const sql = await getSql();
       const promos = await sql<Parameters<typeof mapPromo>[0]>`
         select id, title, subtitle, kind, bonus_type, bonus_percent, bonus_amount, min_deposit,
-               turnover_x, max_bonus, starts_at, ends_at, rules, enabled, updated_at
+               turnover_x, play_need, withdraw_max, max_bonus, starts_at, ends_at, rules, image_url, enabled, updated_at
         from promotions
         where enabled = true
         order by updated_at desc
@@ -349,7 +385,7 @@ export const listMyPromos = createServerFn({ method: "POST" })
           status,
           claimedAt: hit ? new Date(hit.created_at).getTime() : null,
           estimatedBonus,
-          estimatedTurnover: turnoverNeedOf(creditTurnoverBase(p.kind, base, estimatedBonus), p.turnoverX),
+          estimatedTurnover: turnoverNeedOf(creditTurnoverBase(p.kind, base, estimatedBonus), p.turnoverX, p.playNeed),
         };
       });
     } catch (err) {
@@ -366,7 +402,7 @@ export const claimPromo = createServerFn({ method: "POST" })
       const sql = await getSql();
       const rows = await sql<Parameters<typeof mapPromo>[0]>`
         select id, title, subtitle, kind, bonus_type, bonus_percent, bonus_amount, min_deposit,
-               turnover_x, max_bonus, starts_at, ends_at, rules, enabled, updated_at
+               turnover_x, play_need, withdraw_max, max_bonus, starts_at, ends_at, rules, image_url, enabled, updated_at
         from promotions where id = ${data.id}
       `;
       const promo = rows[0] ? mapPromo(rows[0]) : null;
@@ -406,7 +442,7 @@ export const claimPromo = createServerFn({ method: "POST" })
       const bonus = estimateBonus(promo, deposit, Math.max(0, money(lost[0]?.s)));
       if (bonus <= 0) throw new Error("ยังไม่มีโบนัสให้รับตามเงื่อนไขนี้");
       const turnoverBase = creditTurnoverBase(promo.kind, deposit, bonus);
-      const turnoverNeed = turnoverNeedOf(turnoverBase, promo.turnoverX);
+      const turnoverNeed = turnoverNeedOf(turnoverBase, promo.turnoverX, promo.playNeed);
       await sql.query(
         `insert into promo_claims (id, user_id, promo_code, amount, status, note, turnover_need, turnover_base)
          values ($1, $2, $3, $4::numeric, 'pending', $5, $6::numeric, $7::numeric)`,

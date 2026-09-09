@@ -113,41 +113,40 @@ async function savePromo(form: FormData) {
   const id = String(form.get("id") || "").trim() || `prm_${crypto.randomUUID()}`;
   const title = String(form.get("title") || "").trim();
   if (title.length < 2) return back("/app/admin/promos", "err=title");
-  const startsAt = String(form.get("startsAt") || "");
-  const endsAt = String(form.get("endsAt") || "");
+  const imageRaw = String(form.get("imageUrl") || "").trim();
+  const imageUrl = imageRaw ? (imageRaw.startsWith("https://") || imageRaw.startsWith("http://") ? imageRaw.slice(0, 500) : "") : "";
+  const playNeed = Math.max(0, Number(form.get("playNeed") || 0));
+  const withdrawMax = Math.max(0, Number(form.get("withdrawMax") || 0));
+  const bonusAmount = Math.max(0, Number(form.get("bonusAmount") || 0));
+  const minDeposit = Math.max(0, Number(form.get("minDeposit") || 0));
   const sql = await getSql();
   await sql.query(
     `insert into promotions (
        id, title, subtitle, kind, bonus_type, bonus_percent, bonus_amount,
-       min_deposit, turnover_x, max_bonus, starts_at, ends_at, rules, enabled, updated_at
+       min_deposit, turnover_x, play_need, withdraw_max, max_bonus, rules, image_url, enabled, updated_at
      ) values (
-       $1,$2,$3,$4,$5,$6::numeric,$7::numeric,$8::numeric,$9::numeric,$10::numeric,
-       case when $11::bigint = 0 then null else to_timestamp($11::double precision / 1000) end,
-       case when $12::bigint = 0 then null else to_timestamp($12::double precision / 1000) end,
-       $13,$14, now()
+       $1,$2,$3,$4,'fixed',0,$5::numeric,$6::numeric,0,$7::numeric,$8::numeric,0,$9,$10,$11, now()
      )
      on conflict (id) do update set
        title = excluded.title, subtitle = excluded.subtitle, kind = excluded.kind,
-       bonus_type = excluded.bonus_type, bonus_percent = excluded.bonus_percent,
        bonus_amount = excluded.bonus_amount, min_deposit = excluded.min_deposit,
-       turnover_x = excluded.turnover_x, max_bonus = excluded.max_bonus,
-       starts_at = excluded.starts_at, ends_at = excluded.ends_at,
-       rules = excluded.rules, enabled = excluded.enabled, updated_at = now()`,
+       play_need = excluded.play_need, withdraw_max = excluded.withdraw_max,
+       rules = excluded.rules,
+       image_url = case when $12::boolean then '' when excluded.image_url <> '' then excluded.image_url else promotions.image_url end,
+       enabled = excluded.enabled, updated_at = now()`,
     [
       id,
       title,
       String(form.get("subtitle") || ""),
       String(form.get("kind") || "deposit"),
-      String(form.get("bonusType") || "fixed"),
-      Number(form.get("bonusPercent") || 0),
-      Number(form.get("bonusAmount") || 0),
-      Number(form.get("minDeposit") || 0),
-      Number(form.get("turnoverX") || 0),
-      Number(form.get("maxBonus") || 0),
-      startsAt ? new Date(startsAt).getTime() : 0,
-      endsAt ? new Date(endsAt).getTime() : 0,
+      bonusAmount,
+      minDeposit,
+      playNeed,
+      withdrawMax,
       String(form.get("rules") || ""),
+      imageUrl,
       String(form.get("enabled") || "") === "1",
+      String(form.get("clearImage") || "") === "1",
     ],
   );
   return back("/app/admin/promos", "ok=1");
