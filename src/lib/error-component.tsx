@@ -15,7 +15,11 @@ export function AppErrorComponent({ error }: ErrorComponentProps) {
     const n = Number(sessionStorage.getItem(key) || "0");
     if (n >= 2) return;
     sessionStorage.setItem(key, String(n + 1));
-    window.setTimeout(() => window.location.reload(), 400);
+    window.setTimeout(() => {
+      const url = new URL(window.location.href);
+      url.searchParams.set("_", String(Date.now()));
+      window.location.replace(url.pathname + url.search);
+    }, 350);
   }, [moduleFail]);
 
   return (

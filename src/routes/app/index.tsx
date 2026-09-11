@@ -12,21 +12,17 @@ import { PayoutBoard } from "@/components/payout-board";
 import { formatBaht, formatHandicap } from "@/lib/format";
 import { useSessionUser, useStore } from "@/lib/store";
 import { PLAY_CARDS } from "@/lib/play-catalog";
+import { AppErrorComponent } from "@/lib/error-component";
 
 export const Route = createFileRoute("/app/")({
   component: AppHome,
-  errorComponent: ({ error }) => (
-    <div style={{ minHeight: "70dvh", display: "grid", placeItems: "center", textAlign: "center", padding: 16, color: "#f0d789" }}>
-      <div>
-        <div style={{ fontSize: 22, fontWeight: 700 }}>มาวิน1688</div>
-        <p style={{ marginTop: 8, color: "#faf6ea" }}>โหลดหน้าสมาชิกไม่สำเร็จ</p>
-        <p style={{ marginTop: 6, fontSize: 12, color: "#efe4c8" }}>{error instanceof Error ? error.message : ""}</p>
-        <a href="/app" style={{ display: "inline-flex", marginTop: 16, height: 44, alignItems: "center", borderRadius: 8, padding: "0 20px", background: "#c9a44a", color: "#3a2c0c", fontWeight: 700, textDecoration: "none" }}>
-          ลองอีกครั้ง
-        </a>
-      </div>
+  pendingMs: 200,
+  pendingComponent: () => (
+    <div className="grid min-h-[50dvh] place-items-center text-center text-gold-bright">
+      <p>กำลังโหลดหน้าสมาชิก…</p>
     </div>
   ),
+  errorComponent: AppErrorComponent,
 });
 
 function AppHome() {
