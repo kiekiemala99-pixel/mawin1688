@@ -116,7 +116,7 @@ export function DepositForm({
             </div>
           ) : (
             <div className="mt-4 overflow-hidden rounded-2xl bg-white p-4">
-              <img src="/promptpay-qr.jpg" alt="QR พร้อมเพย์" className="mx-auto w-full max-w-[280px] object-contain" />
+              <img src="/promptpay-qr.jpg?v=2" alt="QR พร้อมเพย์" className="mx-auto w-full max-w-[280px] object-contain" />
             </div>
           )}
           <label className="relative mt-3 flex h-28 w-full cursor-pointer flex-col items-center justify-center gap-1 rounded-xl border border-dashed border-gold/50 bg-cream text-sm text-muted">
