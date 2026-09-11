@@ -49,28 +49,27 @@ export function CashQueue({
               </div>
             </div>
             {item.hasSlip ? <p className="mt-2 text-xs text-gold-bright">มีสลิปแนบในระบบ</p> : null}
-            <div className="mt-3 flex gap-2">
-              <form method="POST" action="/api/staff" className="flex-1">
-                <AuthHidden />
-                <input type="hidden" name="action" value="cash" />
-                <input type="hidden" name="id" value={item.id} />
-                <input type="hidden" name="type" value={item.type} />
-                <input type="hidden" name="decide" value="approve" />
-                <button type="submit" className="btn-gold h-11 w-full rounded-lg text-sm">
+            <form method="POST" action="/api/staff" className="mt-3 space-y-2">
+              <AuthHidden />
+              <input type="hidden" name="action" value="cash" />
+              <input type="hidden" name="id" value={item.id} />
+              <input type="hidden" name="type" value={item.type} />
+              <textarea
+                name="reason"
+                rows={2}
+                maxLength={80}
+                placeholder={item.type === "withdraw" ? "เหตุผลถึงสมาชิก เช่น โอนแล้ว / เลขบัญชีไม่ตรง" : "เหตุผลถึงสมาชิก เช่น สลิปไม่ชัด / ยอดไม่ตรง"}
+                className="w-full rounded-xl bg-navy-mid px-3 py-2 text-sm text-cream outline-none"
+              />
+              <div className="flex gap-2">
+                <button type="submit" name="decide" value="approve" className="btn-gold h-11 flex-1 rounded-lg text-sm">
                   {item.type === "withdraw" ? "ยืนยันโอนออก" : "อนุมัติเข้าเครดิต"}
                 </button>
-              </form>
-              <form method="POST" action="/api/staff" className="flex-1">
-                <AuthHidden />
-                <input type="hidden" name="action" value="cash" />
-                <input type="hidden" name="id" value={item.id} />
-                <input type="hidden" name="type" value={item.type} />
-                <input type="hidden" name="decide" value="reject" />
-                <button type="submit" className="h-11 w-full rounded-lg bg-lose/20 text-sm font-semibold text-lose">
+                <button type="submit" name="decide" value="reject" className="h-11 flex-1 rounded-lg bg-lose/20 text-sm font-semibold text-lose">
                   ปฏิเสธ
                 </button>
-              </form>
-            </div>
+              </div>
+            </form>
           </article>
         ))
       )}

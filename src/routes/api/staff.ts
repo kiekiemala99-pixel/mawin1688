@@ -25,6 +25,10 @@ function money(v: unknown) {
   return Math.round(Number(v ?? 0) * 100) / 100;
 }
 
+function staffReason(form: FormData) {
+  return String(form.get("reason") || "").trim().slice(0, 80);
+}
+
 async function sessionUserId(request: Request, token: string) {
   const headers = new Headers(request.headers);
   if (token) headers.set("Authorization", `Bearer ${token}`);
@@ -187,14 +191,22 @@ async function reviewPromo(form: FormData, staffId: string) {
     const row = rows[0];
     if (!row || row.status !== "pending") throw new Error("รายการนี้ดำเนินการแล้ว");
     if (decide === "reject") {
-      await sql.query(`update promo_claims set status = 'rejected', reviewed_at = now(), reviewed_by = $2 where id = $1`, [row.id, staffId]);
+      const reason = staffReason(form);
+      await sql.query(
+        `update promo_claims set status = 'rejected', reviewed_at = now(), reviewed_by = $2,
+           note = case when $3 = '' then note when coalesce(note,'') = '' then 'แอดมิน: ' || $3 else note || ' · แอดมิน: ' || $3 end
+         where id = $1`,
+        [row.id, staffId, reason],
+      );
       return;
     }
     const amount = money(row.amount);
+    const reason = staffReason(form);
+    const note = reason ? `${row.note || `โบนัสโปร ${row.promo_code}`} · แอดมิน: ${reason}` : row.note || `โบนัสโปร ${row.promo_code}`;
     await sql.query(`update wallets set balance = balance + $1::numeric where user_id = $2`, [amount, row.user_id]);
     await sql.query(
       `insert into transactions (id, user_id, type, amount, status, note) values ($1, $2, 'payout', $3::numeric, 'approved', $4)`,
-      [`tx_${crypto.randomUUID()}`, row.user_id, amount, row.note || `โบนัสโปร ${row.promo_code}`],
+      [`tx_${crypto.randomUUID()}`, row.user_id, amount, note],
     );
     await sql.query(`update promo_claims set status = 'approved', reviewed_at = now(), reviewed_by = $2 where id = $1`, [row.id, staffId]);
   });
@@ -205,6 +217,7 @@ async function reviewCash(form: FormData, staffId: string) {
   const id = String(form.get("id") || "");
   const decide = String(form.get("decide") || "");
   const kind = String(form.get("type") || "deposit");
+  const reason = staffReason(form);
   const path = kind === "withdraw" ? "/app/admin/withdraw" : "/app/admin";
   const sql = await getSql();
   const found = await sql<{ id: string; user_id: string; type: "deposit" | "withdraw"; amount: string | number }>`
@@ -214,14 +227,20 @@ async function reviewCash(form: FormData, staffId: string) {
   const row = found[0];
   if (!row) return back(path, "err=missing");
   const ownerId = row.user_id;
+  const noteSql = `note = case
+      when $4 = '' then note
+      when coalesce(note, '') = '' then 'แอดมิน: ' || $4
+      else note || ' · แอดมิน: ' || $4
+    end`;
   if (decide === "approve" && row.type === "deposit") {
     const rows = await sql.query(
       `with t as (
-         update transactions set status = 'approved', reviewed_by = $3, reviewed_at = now()
+         update transactions set status = 'approved', reviewed_by = $3, reviewed_at = now(),
+         ${noteSql}
          where id = $1 and user_id = $2 and status = 'pending' and type = 'deposit' returning amount
        )
        update wallets w set balance = w.balance + t.amount from t where w.user_id = $2 returning w.balance`,
-      [id, ownerId, staffId],
+      [id, ownerId, staffId, reason],
     );
     if (rows.length === 0) return back(path, "err=fail");
     await payReferralCommission(ownerId, id, money(row.amount));
@@ -236,16 +255,26 @@ async function reviewCash(form: FormData, staffId: string) {
       );
       if (upd.length === 0) throw new Error("เครดิตไม่พอ");
       await tx.query(
-        `update transactions set status = 'approved', reviewed_by = $3, reviewed_at = now()
+        `update transactions set status = 'approved', reviewed_by = $3, reviewed_at = now(),
+         note = case
+           when $4 = '' then note
+           when coalesce(note, '') = '' then 'แอดมิน: ' || $4
+           else note || ' · แอดมิน: ' || $4
+         end
          where id = $1 and user_id = $2 and status = 'pending' and type = 'withdraw'`,
-        [id, ownerId, staffId],
+        [id, ownerId, staffId, reason],
       );
     });
   } else {
     await sql.query(
-      `update transactions set status = 'rejected', reviewed_by = $3, reviewed_at = now()
+      `update transactions set status = 'rejected', reviewed_by = $3, reviewed_at = now(),
+       note = case
+         when $4 = '' then note
+         when coalesce(note, '') = '' then 'แอดมิน: ' || $4
+         else note || ' · แอดมิน: ' || $4
+       end
        where id = $1 and user_id = $2 and status = 'pending'`,
-      [id, ownerId, staffId],
+      [id, ownerId, staffId, reason],
     );
   }
   return back(path, "ok=1");
@@ -308,7 +337,7 @@ async function adjustMember(form: FormData, staffId: string) {
         userId,
         direction === "add" ? "deposit" : "withdraw",
         amount,
-        `${direction === "add" ? "เพิ่มเครดิต" : "ลดเครดิต"} · ${reason}`,
+        `${direction === "add" ? "เพิ่มเครดิต" : "ลดเครดิต"} · แอดมิน: ${reason}`,
         staffId,
       ],
     );

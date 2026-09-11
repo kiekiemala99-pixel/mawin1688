@@ -30,3 +30,10 @@ export function formatHandicap(n: number) {
   const sign = n > 0 ? "+" : "-";
   return `${sign}${abs}`;
 }
+
+export function staffMessage(note?: string | null) {
+  if (!note) return "";
+  const i = note.lastIndexOf("แอดมิน:");
+  if (i < 0) return "";
+  return note.slice(i + "แอดมิน:".length).trim();
+}

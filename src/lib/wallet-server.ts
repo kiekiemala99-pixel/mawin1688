@@ -1059,7 +1059,7 @@ export const adjustMemberBalance = createServerFn({ method: "POST" })
   .handler(async ({ context, data }) => {
     await requireStaff(context.userId);
     const amount = money2(data.amount);
-    const note = `${data.direction === "add" ? "เพิ่มเครดิต" : "ลดเครดิต"} · ${data.reason}`;
+    const note = `${data.direction === "add" ? "เพิ่มเครดิต" : "ลดเครดิต"} · แอดมิน: ${data.reason}`;
     await withTransaction(async (tx) => {
       const locked = await tx.query<{ balance: string | number }>(
         `select balance from wallets where user_id = $1 for update`,

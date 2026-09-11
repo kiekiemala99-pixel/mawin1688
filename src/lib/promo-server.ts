@@ -41,6 +41,7 @@ export type PromoRecord = {
 export type PromoView = PromoRecord & {
   status: ClaimStatus;
   claimedAt: number | null;
+  staffNote: string;
   estimatedBonus: number;
   estimatedTurnover: number;
 };
@@ -347,8 +348,8 @@ export const listMyPromos = createServerFn({ method: "POST" })
         where enabled = true
         order by updated_at desc
       `;
-      const claims = await sql<{ promo_code: string; status: string; created_at: string }>`
-        select promo_code, status, created_at
+      const claims = await sql<{ promo_code: string; status: string; created_at: string; note: string }>`
+        select promo_code, status, created_at, note
         from promo_claims where user_id = ${context.userId}
         order by created_at desc
       `;
@@ -381,10 +382,12 @@ export const listMyPromos = createServerFn({ method: "POST" })
         const status = ((p.kind === "daily_first" ? dailyHit : hit)?.status as ClaimStatus | undefined) ?? "none";
         const base = p.kind === "daily_first" ? money(depToday[0]?.s) : deposit;
         const estimatedBonus = estimateBonus(p, base, loss);
+        const latest = claims.find((c) => c.promo_code === p.id);
         return {
           ...p,
           status,
           claimedAt: hit ? new Date(hit.created_at).getTime() : null,
+          staffNote: latest?.note?.includes("แอดมิน:") ? latest.note.slice(latest.note.lastIndexOf("แอดมิน:") + "แอดมิน:".length).trim() : "",
           estimatedBonus,
           estimatedTurnover: turnoverNeedOf(creditTurnoverBase(p.kind, base, estimatedBonus), p.turnoverX, p.playNeed),
         };

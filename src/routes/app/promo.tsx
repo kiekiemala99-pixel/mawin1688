@@ -94,19 +94,24 @@ function ClaimButton({
 }) {
   if (promo.status === "pending") {
     return (
-      <div className="mt-4 h-12 rounded-xl bg-navy-mid text-center text-sm leading-[48px] font-semibold text-gold-bright">
+      <div className="mt-4 rounded-xl bg-navy-mid px-3 py-3 text-center text-sm font-semibold text-gold-bright">
         รอแอดมินตรวจสอบ
       </div>
     );
   }
   if (promo.status === "approved") {
     return (
-      <div className="mt-4 h-12 rounded-xl bg-win/15 text-center text-sm leading-[48px] font-semibold text-win">
-        รับโปรนี้แล้ว
+      <div className="mt-4 space-y-1 rounded-xl bg-win/15 px-3 py-3 text-center text-sm font-semibold text-win">
+        <div>รับโปรนี้แล้ว</div>
+        {promo.staffNote ? <div className="font-normal text-gold-bright">แอดมิน: {promo.staffNote}</div> : null}
       </div>
     );
   }
   return (
+    <div>
+      {promo.staffNote ? (
+        <p className="mt-3 rounded-xl bg-lose/15 px-3 py-2 text-center text-xs text-lose">แอดมิน: {promo.staffNote}</p>
+      ) : null}
     <button
       type="button"
       disabled={busy}
@@ -115,5 +120,6 @@ function ClaimButton({
     >
       {busy ? "กำลังแจ้งแอดมิน…" : "กดรับโปร"}
     </button>
+    </div>
   );
 }

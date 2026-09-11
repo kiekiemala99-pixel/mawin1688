@@ -188,24 +188,26 @@ export function AdminPromoPanel({
                   <div className="text-win">มียอดฝากที่อนุมัติแล้ว</div>
                 )}
               </div>
-              <div className="mt-3 grid grid-cols-2 gap-2">
-                <form method="POST" action="/api/staff">
+              <div className="mt-3 space-y-2">
+                <form method="POST" action="/api/staff" className="space-y-2">
                   <AuthHidden />
                   <input type="hidden" name="action" value="promo_review" />
                   <input type="hidden" name="id" value={item.id} />
-                  <input type="hidden" name="decide" value="approve" />
-                  <button type="submit" className="btn-gold h-10 w-full rounded-lg text-sm">
-                    อนุมัติเติมโบนัส
-                  </button>
-                </form>
-                <form method="POST" action="/api/staff">
-                  <AuthHidden />
-                  <input type="hidden" name="action" value="promo_review" />
-                  <input type="hidden" name="id" value={item.id} />
-                  <input type="hidden" name="decide" value="reject" />
-                  <button type="submit" className="h-10 w-full rounded-lg bg-lose/20 text-sm font-semibold text-lose">
-                    ปฏิเสธ
-                  </button>
+                  <textarea
+                    name="reason"
+                    rows={2}
+                    maxLength={80}
+                    placeholder="เหตุผลถึงสมาชิก เช่น โบนัสเข้าแล้ว / ยังไม่เข้าเงื่อนไข"
+                    className="w-full rounded-xl bg-navy-mid px-3 py-2 text-sm text-cream outline-none"
+                  />
+                  <div className="grid grid-cols-2 gap-2">
+                    <button type="submit" name="decide" value="approve" className="btn-gold h-10 w-full rounded-lg text-sm">
+                      อนุมัติเติมโบนัส
+                    </button>
+                    <button type="submit" name="decide" value="reject" className="h-10 w-full rounded-lg bg-lose/20 text-sm font-semibold text-lose">
+                      ปฏิเสธ
+                    </button>
+                  </div>
                 </form>
               </div>
             </article>

@@ -3,7 +3,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { DepositForm } from "@/components/deposit-form";
 import { WithdrawForm } from "@/components/withdraw-form";
 import { useSessionUser, useStore } from "@/lib/store";
-import { formatBaht, formatWhen } from "@/lib/format";
+import { formatBaht, formatWhen, staffMessage } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/app/wallet")({ component: WalletPage });
@@ -52,9 +52,13 @@ function WalletPage() {
                   </div>
                   <div className="text-xs text-cream/50">
                     {formatWhen(t.createdAt)}
-                    {t.note ? ` · ${t.note}` : ""}
                     {t.hasSlip ? " · มีสลิป" : ""}
                   </div>
+                  {staffMessage(t.note) ? (
+                    <div className="mt-1 text-xs font-medium text-gold-bright">แอดมิน: {staffMessage(t.note)}</div>
+                  ) : t.note ? (
+                    <div className="mt-0.5 text-xs text-cream/55">{t.note}</div>
+                  ) : null}
                 </div>
                 <div
                   className={cn(

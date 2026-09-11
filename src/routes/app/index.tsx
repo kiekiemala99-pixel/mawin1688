@@ -9,7 +9,7 @@ import { secondsToClock } from "@/lib/time";
 import { StatusPill } from "@/components/result-cards";
 import { GoldCard } from "@/components/gold-card";
 import { PayoutBoard } from "@/components/payout-board";
-import { formatBaht, formatHandicap } from "@/lib/format";
+import { formatBaht, formatHandicap, formatWhen, staffMessage } from "@/lib/format";
 import { useSessionUser, useStore } from "@/lib/store";
 import { PLAY_CARDS } from "@/lib/play-catalog";
 import { AppErrorComponent } from "@/lib/error-component";
@@ -32,6 +32,7 @@ function AppHome() {
   const txns = useStore((s) => s.txns);
   const [live, setLive] = useState<MatchView[]>([]);
   const pendingCash = txns.filter((t) => t.status === "pending" && (t.type === "deposit" || t.type === "withdraw"));
+  const adminNotes = txns.filter((t) => staffMessage(t.note)).slice(0, 3);
 
   useEffect(() => {
     let alive = true;
@@ -105,6 +106,20 @@ function AppHome() {
           </span>
         </Link>
       )}
+
+      {adminNotes.map((t) => (
+        <Link
+          key={t.id}
+          to="/app/wallet"
+          className="block w-full rounded-xl bg-navy-card px-3 py-3 text-left text-sm shadow-[0_0_0_1px_rgba(201,164,74,0.25)]"
+        >
+          <div className="font-semibold text-gold-bright">ข้อความจากแอดมิน</div>
+          <div className="mt-1 text-cream/90">{staffMessage(t.note)}</div>
+          <div className="mt-1 text-[11px] text-cream/50">
+            {t.type === "withdraw" ? "ถอน" : t.type === "deposit" ? "ฝาก" : "ปรับยอด"} · {formatWhen(t.createdAt)}
+          </div>
+        </Link>
+      ))}
 
       <>
           <div className="grid grid-cols-2 gap-3">
