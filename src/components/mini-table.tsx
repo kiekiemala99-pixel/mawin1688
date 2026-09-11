@@ -57,6 +57,7 @@ export function MiniTable({
       backTo="/app/games"
       title={game.title}
       subtitle={game.blurb}
+      bg={game.cover}
       boardClass="game-board-center"
       dock={
         <form method="POST" action="/api/play" onSubmit={(e) => void playJs(e)} className="mx-auto w-full max-w-md space-y-2">

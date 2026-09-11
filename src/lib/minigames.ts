@@ -62,7 +62,7 @@ export const MINI_GAMES: MiniGame[] = [
   ], payHint: "ชนะ 1:1 · เสมอคืนทุน" },
   { id: "namtao", type: "fpc", title: "น้ำเต้าปูปลา", blurb: "ทอย 3 ลูก · กดเลือก 1 ช่อง", cover: "/mini/covers/namtao.jpg", options: FPC.map((x) => ({ id: x.id, label: x.label })), payHint: "ออก 1 / 2 / 3 ลูก จ่าย 1:1 ต่อลูก (คืนทุนถ้าออก)" },
   { id: "pokdeng", type: "pokdeng", title: "ป๊อกเด้ง", blurb: "ไพ่ 2–3 ใบ แข่งเจ้ามือ", cover: "/mini/covers/pokdeng.jpg", options: [{ id: "play", label: "เล่น" }], payHint: "แต้มสูงกว่าชนะ 1:1 · เสมอคืนทุน" },
-  { id: "hilo", type: "hilo", title: "ไฮโล", blurb: "ลูกเต๋า 3 ลูก สูง-ต่ำ", cover: "/mini/covers/hilo.jpg", options: [
+  { id: "hilo", type: "hilo", title: "ไฮโลไทย", blurb: "โต๊ะสด ลูกเต๋า 3 ลูก สูง-ต่ำ", cover: "/mini/covers/live-host.jpg", options: [
     { id: "small", label: "ต่ำ 4–10" },
     { id: "big", label: "สูง 11–17" },
     { id: "eleven", label: "11" },
@@ -82,6 +82,8 @@ export function getMiniGame(id: string) {
 export type MiniReveal = {
   dice?: number[];
   cards?: { rank: number; suit: string }[];
+  playerCards?: { rank: number; suit: string }[];
+  dealerCards?: { rank: number; suit: string }[];
   extra?: string;
   faces?: string[];
   fruits?: string[];
@@ -220,9 +222,10 @@ export function resolveMini(gameId: string, pick: string, stake: number, cfg?: R
       const ps = handPok(player);
       const ds = handPok(dealer);
       const extra = `คุณ ${player.map(cardLabel).join(" ")} (${ps}) · เจ้ามือ ${dealer.map(cardLabel).join(" ")} (${ds})`;
-      if (ps === ds) out = push({ cards: [...player, ...dealer], extra }, extra);
-      else if (ps > ds) out = win(stake * p("win", 2), { cards: [...player, ...dealer], extra }, extra);
-      else out = lose({ cards: [...player, ...dealer], extra }, extra);
+      const reveal = { cards: [...player, ...dealer], playerCards: player, dealerCards: dealer, extra };
+      if (ps === ds) out = push(reveal, extra);
+      else if (ps > ds) out = win(stake * p("win", 2), reveal, extra);
+      else out = lose(reveal, extra);
       break;
     }
     case "dragontiger": {
@@ -249,19 +252,20 @@ export function resolveMini(gameId: string, pick: string, stake: number, cfg?: R
         bv = handBac(banker);
       }
       const extra = `ผู้เล่น ${pv} · แบงค์ ${bv}`;
+      const reveal = { cards: [...player, ...banker], playerCards: player, dealerCards: banker, extra };
       if (pv === bv) {
-        out = pick === "tie" ? win(stake * p("tie", 9), { extra }, extra) : lose({ extra }, extra);
+        out = pick === "tie" ? win(stake * p("tie", 9), reveal, extra) : lose(reveal, extra);
         break;
       }
       if (pick === "tie") {
-        out = lose({ extra }, extra);
+        out = lose(reveal, extra);
         break;
       }
       if (pick === "player") {
-        out = pv > bv ? win(stake * p("player", 2), { extra }, extra) : lose({ extra }, extra);
+        out = pv > bv ? win(stake * p("player", 2), reveal, extra) : lose(reveal, extra);
         break;
       }
-      out = bv > pv ? win(round2(stake * p("banker", 1.95)), { extra }, extra) : lose({ extra }, extra);
+      out = bv > pv ? win(round2(stake * p("banker", 1.95)), reveal, extra) : lose(reveal, extra);
       break;
     }
     case "dice": {

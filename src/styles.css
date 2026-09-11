@@ -613,6 +613,113 @@
     animation: dice-tumble 0.18s linear infinite;
   }
 
+  .live-table {
+    display: flex;
+    min-height: 100dvh;
+    flex-direction: column;
+    background: #07140f;
+    color: var(--color-cream);
+  }
+  .live-hud {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.55rem 0.7rem;
+    background: rgb(6 18 14 / 0.92);
+    border-bottom: 1px solid rgb(201 164 74 / 0.28);
+  }
+  .live-host {
+    display: block;
+    height: 8.6rem;
+    width: 100%;
+    object-fit: cover;
+    object-position: 50% 22%;
+  }
+  .live-host-shade {
+    position: absolute;
+    inset: auto 0 0;
+    height: 2.4rem;
+    background: linear-gradient(transparent, #07140f);
+  }
+  .live-felt {
+    margin: -0.4rem 0.7rem 0;
+    padding: 0.85rem 0.7rem 1rem;
+    border-radius: 1.4rem;
+    background:
+      radial-gradient(ellipse at 50% 0%, rgb(240 215 137 / 0.12), transparent 50%),
+      linear-gradient(180deg, #1a6b42 0%, #0d3d28 55%, #082418 100%);
+    box-shadow:
+      inset 0 0 0 3px #d7b45a,
+      inset 0 0 0 7px #2a4a34,
+      0 14px 28px rgb(0 0 0 / 0.45);
+  }
+  .hilo-spot {
+    display: flex;
+    min-height: 4.4rem;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    border-radius: 0.85rem;
+    background: rgb(247 246 239 / 0.92);
+    color: #163526;
+    box-shadow: inset 0 1px 0 #fff, 0 3px 0 #8aa58f;
+  }
+  .hilo-spot.is-on {
+    background: linear-gradient(180deg, #fff3bf, #e7c45a);
+    box-shadow: inset 0 1px 0 #fff, 0 0 0 2px #f0d789, 0 6px 16px rgb(240 215 137 / 0.35);
+  }
+  .hilo-hist {
+    display: flex;
+    gap: 0.35rem;
+    overflow-x: auto;
+    padding-bottom: 0.2rem;
+  }
+  .hilo-hist-col {
+    display: flex;
+    min-width: 1.7rem;
+    flex-direction: column;
+    gap: 0.12rem;
+    align-items: center;
+  }
+  .hilo-hist-col.is-win .hilo-mini-die {
+    background: #d7f5c8;
+  }
+  .hilo-mini-die {
+    display: grid;
+    place-items: center;
+    width: 1.55rem;
+    height: 1.55rem;
+    border-radius: 0.28rem;
+    background: #fff;
+    color: #163526;
+    font-size: 0.7rem;
+    font-weight: 800;
+  }
+  .live-dock {
+    margin-top: auto;
+    padding: 0.75rem 0.75rem 1.1rem;
+    background: rgb(6 18 14 / 0.96);
+    border-top: 1px solid rgb(201 164 74 / 0.22);
+  }
+  .live-card {
+    display: grid;
+    place-items: center;
+    width: 2.7rem;
+    height: 3.7rem;
+    border-radius: 0.45rem;
+    background: linear-gradient(180deg, #fff, #efe7d2);
+    color: #1b2a22;
+    font-size: 0.78rem;
+    font-weight: 800;
+    box-shadow: 0 4px 0 #8a6a1f, 0 8px 12px rgb(0 0 0 / 0.3);
+  }
+  .live-card.is-back,
+  .live-card.is-empty {
+    background: repeating-linear-gradient(135deg, #7a1d2a, #7a1d2a 6px, #9a2a3a 6px, #9a2a3a 12px);
+    color: transparent;
+  }
+
+
   .win-layer {
     pointer-events: none;
     position: fixed;
