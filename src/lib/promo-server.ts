@@ -55,6 +55,7 @@ export type StaffPromoItem = {
   amount: number;
   minDeposit: number;
   depositApproved: number;
+  depositPending: number;
   turnoverX: number;
   createdAt: number;
 };
@@ -469,6 +470,7 @@ export async function loadPromoQueue(): Promise<StaffPromoItem[]> {
     turnover_x: string | number;
     created_at: string;
     deposit_approved: string | number;
+    deposit_pending: string | number;
   }>`
     select c.id, c.user_id, w.username, w.phone, c.promo_code, c.amount, c.created_at,
            coalesce(p.title, c.note) as title,
@@ -477,7 +479,11 @@ export async function loadPromoQueue(): Promise<StaffPromoItem[]> {
            coalesce((
              select sum(t.amount) from transactions t
              where t.user_id = c.user_id and t.type = 'deposit' and t.status = 'approved'
-           ), 0) as deposit_approved
+           ), 0) as deposit_approved,
+           coalesce((
+             select sum(t.amount) from transactions t
+             where t.user_id = c.user_id and t.type = 'deposit' and t.status = 'pending'
+           ), 0) as deposit_pending
     from promo_claims c
     join wallets w on w.user_id = c.user_id
     left join promotions p on p.id = c.promo_code
@@ -494,6 +500,7 @@ export async function loadPromoQueue(): Promise<StaffPromoItem[]> {
     amount: money(r.amount),
     minDeposit: money(r.min_deposit),
     depositApproved: money(r.deposit_approved),
+    depositPending: money(r.deposit_pending),
     turnoverX: money(r.turnover_x),
     createdAt: new Date(r.created_at).getTime(),
   }));

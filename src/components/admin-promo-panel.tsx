@@ -1,5 +1,5 @@
 import { AuthHidden } from "@/components/auth-hidden";
-import { formatBaht } from "@/lib/format";
+import { formatBaht, formatWhen } from "@/lib/format";
 import { PROMO_KINDS, type PromoRecord, type StaffPromoItem } from "@/lib/promo-server";
 import { cn } from "@/lib/utils";
 
@@ -160,6 +160,34 @@ export function AdminPromoPanel({
                 {item.username} · {item.phone}
               </div>
               <div className="tabular mt-1 text-sm">โบนัสที่ขอ ฿ {formatBaht(item.amount)}</div>
+              <div className="mt-2 space-y-0.5 rounded-lg bg-navy-mid px-2.5 py-2 text-xs text-cream/85">
+                <div className="flex justify-between">
+                  <span>ฝากที่อนุมัติแล้ว</span>
+                  <span className={item.depositApproved > 0 ? "text-win" : "text-lose"}>
+                    ฿ {formatBaht(item.depositApproved, 0)}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span>ฝากรอตรวจ</span>
+                  <span className={item.depositPending > 0 ? "text-gold-bright" : ""}>
+                    ฿ {formatBaht(item.depositPending, 0)}
+                  </span>
+                </div>
+                {item.minDeposit > 0 ? (
+                  <div className="flex justify-between text-cream/55">
+                    <span>ขั้นต่ำของโปร</span>
+                    <span>฿ {formatBaht(item.minDeposit, 0)}</span>
+                  </div>
+                ) : null}
+                <div className="text-gold-bright">กดรับโปร {formatWhen(item.createdAt)}</div>
+                {item.depositApproved <= 0 && item.depositPending <= 0 ? (
+                  <div className="font-semibold text-lose">ยังไม่มีการแจ้งฝาก</div>
+                ) : item.depositApproved <= 0 && item.depositPending > 0 ? (
+                  <div className="font-semibold text-gold-bright">มีสลิปรอตรวจที่เมนูรอฝาก ยังไม่เข้าเครดิต</div>
+                ) : (
+                  <div className="text-win">มียอดฝากที่อนุมัติแล้ว</div>
+                )}
+              </div>
               <div className="mt-3 grid grid-cols-2 gap-2">
                 <form method="POST" action="/api/staff">
                   <AuthHidden />
